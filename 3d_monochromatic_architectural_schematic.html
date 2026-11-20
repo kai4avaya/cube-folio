@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Monochromatic Architectural Schematic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #e6e3dd;
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            color: #18181b;
+            user-select: none;
+        }
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+        }
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Minimal Technical HUD Overlay (Alabaster Theme with High-Contrast Dark Text) -->
+    <div class="absolute inset-x-0 top-0 p-5 flex flex-wrap justify-between items-center gap-4 pointer-events-none z-10">
+        <!-- Status Pill -->
+        <div id="status-pill" class="pointer-events-auto flex items-center bg-white/80 backdrop-blur-md px-4 py-2 rounded-md border border-stone-300 shadow-sm transition-colors duration-300">
+            <span id="status-text" class="text-[11px] uppercase tracking-[0.2em] text-stone-900 font-semibold transition-colors duration-300">3D ISO-SCHEMATIC</span>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="pointer-events-auto flex flex-wrap items-center gap-2.5">
+            <!-- Elevation Slider -->
+            <div id="slider-pill" class="hidden sm:flex items-center space-x-2 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-md border border-stone-300 text-[10px] uppercase tracking-wider text-stone-800 font-medium shadow-sm transition-colors duration-300">
+                <span>3D Relief</span>
+                <input id="relief-slider" type="range" min="0" max="2.5" step="0.05" value="1.15" class="w-20 accent-stone-800 cursor-pointer">
+            </div>
+
+            <!-- Reverse Color (Alabaster <-> Obsidian) Button -->
+            <button id="theme-btn" class="hud-btn bg-white/80 hover:bg-white text-stone-900 font-medium text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-md backdrop-blur-md border border-stone-300 shadow-sm transition-all flex items-center space-x-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                <span id="theme-btn-text">Reverse Color</span>
+            </button>
+
+            <!-- Upload Image Button -->
+            <label class="hud-btn cursor-pointer bg-white/90 hover:bg-white text-stone-900 font-medium text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-md backdrop-blur-md border border-stone-300 shadow-sm transition-all flex items-center space-x-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                <span>Drop / Load Image</span>
+                <input type="file" id="image-upload" accept="image/*" class="hidden">
+            </label>
+
+            <!-- Download Image Button -->
+            <button id="download-btn" class="hud-btn bg-white/80 hover:bg-white text-stone-900 font-medium text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-md backdrop-blur-md border border-stone-300 shadow-sm transition-all flex items-center space-x-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>Download Image</span>
+            </button>
+
+            <!-- Reset View Button -->
+            <button id="reset-btn" class="hud-btn bg-white/80 hover:bg-white text-stone-900 font-medium text-[11px] uppercase tracking-wider px-3.5 py-2 rounded-md backdrop-blur-md border border-stone-300 shadow-sm transition-all">
+                Reset Iso
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom Instruction Bar -->
+    <div id="bottom-bar" class="absolute inset-x-0 bottom-5 px-6 flex justify-between items-center pointer-events-none z-10 text-[10px] tracking-[0.18em] uppercase text-stone-700 font-medium transition-colors duration-300">
+        <div id="instruction-pill" class="hidden md:block bg-white/75 backdrop-blur-md px-3 py-1.5 rounded border border-stone-300 shadow-sm transition-colors duration-300">
+            CLICK ANY NODE TO ZOOM // DRAG TO ORBIT // DROP ANY SCREENSHOT
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-stone-900 text-stone-100 font-semibold text-[11px] uppercase tracking-widest px-4 py-2 rounded shadow-xl opacity-0 transition-opacity duration-300 pointer-events-none z-50">
+        LOCKED ON SECTOR
+    </div>
+
+    <script>
+        // --- Core Scene & Isometric State ---
+        let scene, camera, renderer, schematicGroup;
+        let hitPlaneMesh, focusSquareMesh, cubeOutlineMesh, cornerTicksMesh, dropLinesMesh;
+        let mainShaderMaterial = null;
+        let extrudeGroup = null;
+        let isCustomImage = false;
+        let isObsidian = false;
+
+        // Monument Valley Isometric Camera Angles
+        const DEFAULT_ROT_X = 0.58; // Crisp isometric viewing angle
+        const DEFAULT_ROT_Y = -0.52;
+        let targetRotation = { x: DEFAULT_ROT_X, y: DEFAULT_ROT_Y };
+        let currentRotation = { x: DEFAULT_ROT_X, y: DEFAULT_ROT_Y };
+
+        let currentZoom = 1.0;
+        let targetZoom = 1.0;
+
+        let cameraTarget = new THREE.Vector3(0, 0, 0);
+        let targetLookAt = new THREE.Vector3(0, 0, 0);
+
+        let isDragging = false;
+        let dragDistance = 0;
+        let previousMousePosition = { x: 0, y: 0 };
+        let currentAspect = 16 / 10;
+
+        const container = document.getElementById('canvas-container');
+        const toast = document.getElementById('toast');
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2200);
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            // Fixed Warm Alabaster background
+            scene.background = new THREE.Color(0xe6e3dd);
+
+            // Orthographic Camera gives the true Monument Valley / 3D CAD Schematic perspective
+            const frustumSize = 26;
+            const aspect = window.innerWidth / window.innerHeight;
+            camera = new THREE.OrthographicCamera(
+                -frustumSize * aspect / 2,
+                frustumSize * aspect / 2,
+                frustumSize / 2,
+                -frustumSize / 2,
+                -200,
+                500
+            );
+            camera.userData.frustumSize = frustumSize;
+
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                preserveDrawingBuffer: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            schematicGroup = new THREE.Group();
+            scene.add(schematicGroup);
+
+            // Build the exact high-res replica of the user's attached portfolio screenshot
+            const defaultTexture = createPortfolioScreenshotTexture();
+            buildSchematicWorld(defaultTexture, 16 / 10, false);
+
+            // Intro unfold animation on open
+            currentZoom = 0.72;
+            targetZoom = 1.05;
+            currentRotation.y = -1.1;
+            targetRotation.y = DEFAULT_ROT_Y;
+
+            window.addEventListener('resize', onWindowResize);
+            setupInteractions();
+            setupUIControls();
+
+            animate();
+        }
+
+        // --- High-Resolution Canvas Replica of the Attached Portfolio Screenshot ---
+        function createPortfolioScreenshotTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 2560;
+            canvas.height = 1600;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(1.25, 1.25);
+
+            // 1. Deep Matte Black Background
+            ctx.fillStyle = '#08080a';
+            ctx.fillRect(0, 0, 2048, 1280);
+
+            // 2. Top Ticker Bar
+            ctx.strokeStyle = '#2e2e36';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 44); ctx.lineTo(2048, 44);
+            ctx.moveTo(0, 125); ctx.lineTo(2048, 125);
+            ctx.stroke();
+
+            ctx.fillStyle = '#e4e4e7';
+            ctx.font = '500 15px "JetBrains Mono", monospace';
+            ctx.fillText('IN-BETWEEN  //  QUERYING THE GRID  //  BUILDING AI AGENTS TO NAVIGATE MESSY DATA  //  CRAFTING UIS THAT ANCHOR THE ENTROPY  //  SENSORIAL EXPERIENCES OF INFORMATION', 28, 28);
+
+            // 3. Navigation Bar Elements
+            // Reset Grid Pill
+            ctx.strokeStyle = '#3f3f46';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.roundRect(68, 60, 168, 48, 24);
+            ctx.stroke();
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '500 15px "JetBrains Mono", monospace';
+            ctx.fillText('↻  RESET GRID', 92, 89);
+
+            // Center Nav Links
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '600 17px "JetBrains Mono", monospace';
+            ctx.fillText('[ HOME ♛ ]', 755, 89);
+            ctx.fillStyle = '#d4d4d8';
+            ctx.fillText('EXPERIMENTS', 922, 89);
+            ctx.fillText('ABOUT', 1122, 89);
+
+            // Right K.AI Button
+            ctx.strokeStyle = '#52525b';
+            ctx.strokeRect(1816, 62, 98, 44);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('✦ K.AI', 1835, 89);
+
+            // 4. Central Architectural Matrix Grid & Nodes
+            const startX = 342;
+            const endX = 1706;
+            const startY = 216;
+            const endY = 1008;
+            const cols = 8;
+            const rows = 4;
+            const stepX = (endX - startX) / cols;
+            const stepY = (endY - startY) / rows;
+
+            // Crisp vertical & horizontal lines
+            ctx.strokeStyle = '#25252c';
+            ctx.lineWidth = 2;
+            for (let c = 0; c <= cols; c++) {
+                const x = startX + c * stepX;
+                ctx.beginPath();
+                ctx.moveTo(x, 125);
+                ctx.lineTo(x, 1040);
+                ctx.stroke();
+            }
+            for (let r = 0; r <= rows; r++) {
+                const y = startY + r * stepY;
+                ctx.beginPath();
+                ctx.moveTo(startX, y);
+                ctx.lineTo(endX, y);
+                ctx.stroke();
+            }
+
+            // Intersection Square Nodes
+            ctx.fillStyle = '#52525e';
+            for (let c = 0; c <= cols; c++) {
+                for (let r = 0; r <= rows; r++) {
+                    const x = startX + c * stepX;
+                    const y = startY + r * stepY;
+                    ctx.fillRect(x - 7, y - 7, 14, 14);
+                }
+            }
+
+            // 5. Crisp Origami Geometric Bird
+            // Tail Wing (Long Lower Left Sweep)
+            ctx.fillStyle = '#c81e1e';
+            ctx.beginPath();
+            ctx.moveTo(1386, 922);
+            ctx.lineTo(1738, 452);
+            ctx.lineTo(1744, 594);
+            ctx.lineTo(1572, 742);
+            ctx.closePath();
+            ctx.fill();
+
+            // Main Body Facet
+            ctx.fillStyle = '#ef2323';
+            ctx.beginPath();
+            ctx.moveTo(1738, 452);
+            ctx.lineTo(1744, 594);
+            ctx.lineTo(1692, 868);
+            ctx.lineTo(1572, 742);
+            ctx.closePath();
+            ctx.fill();
+
+            // Under-wing Secondary Fold
+            ctx.fillStyle = '#ff3b3b';
+            ctx.beginPath();
+            ctx.moveTo(1572, 742);
+            ctx.lineTo(1612, 804);
+            ctx.lineTo(1566, 892);
+            ctx.closePath();
+            ctx.fill();
+
+            // Upper Neck / Head Base
+            ctx.fillStyle = '#b91c1c';
+            ctx.beginPath();
+            ctx.moveTo(1680, 525);
+            ctx.lineTo(1738, 452);
+            ctx.lineTo(1744, 594);
+            ctx.closePath();
+            ctx.fill();
+
+            // Beak Facet
+            ctx.fillStyle = '#f92828';
+            ctx.beginPath();
+            ctx.moveTo(1738, 452);
+            ctx.lineTo(1856, 508);
+            ctx.lineTo(1738, 535);
+            ctx.closePath();
+            ctx.fill();
+
+            // 6. Footer Schematic Lines & Labels
+            ctx.strokeStyle = '#2e2e36';
+            ctx.beginPath();
+            ctx.moveTo(68, 1065); ctx.lineTo(1980, 1065);
+            ctx.moveTo(68, 1178); ctx.lineTo(1980, 1178);
+            ctx.stroke();
+
+            ctx.fillStyle = '#e4e4e7';
+            ctx.font = '500 15px "JetBrains Mono", monospace';
+            ctx.fillText('▣   SYSTEMS NORMAL', 72, 1126);
+            ctx.fillText('in  LINKEDIN      🐙  GITHUB', 1775, 1126);
+
+            ctx.fillStyle = '#a1a1aa';
+            ctx.fillText('©  2 0 2 6   K A I   K L E I N B A R D', 900, 1222);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.generateMipmaps = true;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        // --- Pure, Unaltered Image Shader (Zero Multi-Sampling, Zero Text Blending, Original Colors Preserved) ---
+        function createUnifiedReliefMaterial(texture) {
+            const uniforms = {
+                uTexture: { value: texture },
+                uTime: { value: 0 },
+                uFocusPoint: { value: new THREE.Vector2(-10, -10) }
+            };
+
+            const vertexShader = `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `;
+
+            const fragmentShader = `
+                uniform sampler2D uTexture;
+                uniform float uTime;
+                uniform vec2 uFocusPoint;
+                varying vec2 vUv;
+
+                void main() {
+                    // Sample the exact pixel once with zero offset rays so text and lines never repeat or blend
+                    vec4 tex = texture2D(uTexture, vUv);
+                    vec3 col = tex.rgb;
+
+                    // Subtle light square highlight on the image surface corresponding to the clicked cube coordinate
+                    vec2 diff = abs(vUv - uFocusPoint);
+                    float boxDist = max(diff.x * 1.6, diff.y);
+                    float border = smoothstep(0.038, 0.036, boxDist) * (1.0 - smoothstep(0.034, 0.032, boxDist));
+                    float fill = (1.0 - smoothstep(0.0, 0.036, boxDist)) * 0.08;
+                    col += vec3(0.95, 0.95, 0.92) * (border * 0.45 + fill);
+
+                    gl_FragColor = vec4(col, 1.0);
+                }
+            `;
+
+            mainShaderMaterial = new THREE.ShaderMaterial({
+                uniforms,
+                vertexShader,
+                fragmentShader,
+                side: THREE.DoubleSide
+            });
+
+            return mainShaderMaterial;
+        }
+
+        // --- Build Monument Valley 3D Origami Sculpture & Extruded UI Architecture ---
+        function buildMonumentExtrusions(baseWidth, baseHeight, isCustom) {
+            const group = new THREE.Group();
+
+            // Helper to convert 2048x1280 canvas coordinates into 3D world space on the board
+            const toWorld = (cx, cy) => {
+                const x = (cx / 2048 - 0.5) * baseWidth;
+                const z = (cy / 1280 - 0.5) * baseHeight;
+                return [x, z];
+            };
+
+            if (!isCustom) {
+                // Raised 3D Origami Bird (Lifted cleanly above the canvas with a single 3D relief height)
+                const facets = [
+                    // Tail Wing
+                    { pts: [[1386, 922], [1738, 452], [1744, 594], [1572, 742]], h: [0.02, 0.85, 0.62, 0.35], col: 0xc81e1e },
+                    // Main Body Facet
+                    { pts: [[1738, 452], [1744, 594], [1692, 868], [1572, 742]], h: [0.85, 0.62, 0.18, 0.35], col: 0xef2323 },
+                    // Under-wing Fold
+                    { pts: [[1572, 742], [1612, 804], [1566, 892]], h: [0.35, 0.22, 0.03], col: 0xff3b3b },
+                    // Upper Neck
+                    { pts: [[1680, 525], [1738, 452], [1744, 594]], h: [0.48, 0.85, 0.62], col: 0xb91c1c },
+                    // Beak
+                    { pts: [[1738, 452], [1856, 508], [1738, 535]], h: [0.85, 0.52, 0.64], col: 0xf92828 }
+                ];
+
+                facets.forEach(f => {
+                    const geom = new THREE.BufferGeometry();
+                    const vertices = [];
+
+                    const p0 = toWorld(f.pts[0][0], f.pts[0][1]);
+                    const p1 = toWorld(f.pts[1][0], f.pts[1][1]);
+                    const p2 = toWorld(f.pts[2][0], f.pts[2][1]);
+
+                    vertices.push(p0[0], f.h[0], p0[1]);
+                    vertices.push(p1[0], f.h[1], p1[1]);
+                    vertices.push(p2[0], f.h[2], p2[1]);
+
+                    if (f.pts.length === 4) {
+                        const p3 = toWorld(f.pts[3][0], f.pts[3][1]);
+                        vertices.push(p0[0], f.h[0], p0[1]);
+                        vertices.push(p2[0], f.h[2], p2[1]);
+                        vertices.push(p3[0], f.h[3], p3[1]);
+                    }
+
+                    geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                    geom.computeVertexNormals();
+
+                    const mat = new THREE.MeshBasicMaterial({ color: f.col, side: THREE.DoubleSide });
+                    const mesh = new THREE.Mesh(geom, mat);
+
+                    const edges = new THREE.LineSegments(
+                        new THREE.EdgesGeometry(geom),
+                        new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 })
+                    );
+                    mesh.add(edges);
+                    group.add(mesh);
+                });
+
+                // Raised 3D Architectural Pillars at the Matrix Grid Intersections
+                const startX = 342, endX = 1706, startY = 216, endY = 1008;
+                const stepX = (endX - startX) / 8;
+                const stepY = (endY - startY) / 4;
+                const nodeGeo = new THREE.BoxGeometry(0.14, 0.20, 0.14);
+                const nodeMat = new THREE.MeshBasicMaterial({ color: 0x52525b });
+                const nodeEdgeMat = new THREE.LineBasicMaterial({ color: 0xa1a1aa, transparent: true, opacity: 0.55 });
+
+                for (let c = 0; c <= 8; c++) {
+                    for (let r = 0; r <= 4; r++) {
+                        const [wx, wz] = toWorld(startX + c * stepX, startY + r * stepY);
+                        const node = new THREE.Mesh(nodeGeo, nodeMat);
+                        node.position.set(wx, 0.10, wz);
+                        node.add(new THREE.LineSegments(new THREE.EdgesGeometry(nodeGeo), nodeEdgeMat));
+                        group.add(node);
+                    }
+                }
+            }
+
+            return group;
+        }
+
+        // --- Build 3D Wireframe Cube Diorama Housing the Pristine Original-Color Image ---
+        function buildSchematicWorld(texture, aspect, customImage = false) {
+            currentAspect = aspect;
+            isCustomImage = customImage;
+
+            // Clear old group contents
+            while (schematicGroup.children.length > 0) {
+                const obj = schematicGroup.children[0];
+                schematicGroup.remove(obj);
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) obj.material.dispose();
+            }
+
+            const baseHeight = 14;
+            const baseWidth = baseHeight * aspect;
+            const reliefVal = parseFloat(document.getElementById('relief-slider').value);
+
+            // 1. Solid Architectural Slab Base beneath the image so it sits like a physical artifact inside the cube
+            const slabThickness = 0.28;
+            const slabGeo = new THREE.BoxGeometry(baseWidth, slabThickness, baseHeight);
+            const slabMat = new THREE.MeshBasicMaterial({ color: 0x141418 });
+            const slabMesh = new THREE.Mesh(slabGeo, slabMat);
+            slabMesh.position.y = -slabThickness / 2 - 0.01;
+            schematicGroup.add(slabMesh);
+
+            const slabEdges = new THREE.LineSegments(
+                new THREE.EdgesGeometry(slabGeo),
+                new THREE.LineBasicMaterial({ color: 0x52525b, transparent: true, opacity: 0.7 })
+            );
+            slabMesh.add(slabEdges);
+
+            // 2. Single Pristine High-Resolution Plate (Original image colors, zero multi-sampling)
+            const baseGeo = new THREE.PlaneGeometry(baseWidth, baseHeight);
+            baseGeo.rotateX(-Math.PI / 2);
+            const baseMesh = new THREE.Mesh(baseGeo, createUnifiedReliefMaterial(texture));
+            schematicGroup.add(baseMesh);
+
+            // 3. Physical 3D Monument Valley Extrusions (Origami Bird & Matrix Nodes)
+            extrudeGroup = buildMonumentExtrusions(baseWidth, baseHeight, isCustomImage);
+            extrudeGroup.scale.y = Math.max(0.001, reliefVal);
+            extrudeGroup.visible = reliefVal > 0.02;
+            schematicGroup.add(extrudeGroup);
+
+            // 4. Enclosing 3D Cube Outline (Architectural dark graphite lines against Alabaster background)
+            const cubeWidth = baseWidth + 2.4;
+            const cubeDepth = baseHeight + 2.4;
+            const cubeHeight = Math.max(cubeWidth, cubeDepth) * 0.72;
+
+            const outerCubeGeo = new THREE.BoxGeometry(cubeWidth, cubeHeight, cubeDepth);
+            const outerEdgesGeo = new THREE.EdgesGeometry(outerCubeGeo);
+            const outerEdgesMat = new THREE.LineBasicMaterial({
+                color: isObsidian ? 0xa1a1aa : 0x27272a,
+                transparent: true,
+                opacity: isObsidian ? 0.38 : 0.45
+            });
+            cubeOutlineMesh = new THREE.LineSegments(outerEdgesGeo, outerEdgesMat);
+            cubeOutlineMesh.position.y = cubeHeight * 0.12;
+            schematicGroup.add(cubeOutlineMesh);
+
+            // Subtle architectural corner bracket ticks on the 3D cube vertices
+            const cornerSize = 0.55;
+            const halfW = cubeWidth / 2;
+            const halfH = cubeHeight / 2;
+            const halfD = cubeDepth / 2;
+            const cyOffset = cubeOutlineMesh.position.y;
+            const cornerPts = [];
+
+            [-1, 1].forEach(sx => {
+                [-1, 1].forEach(sy => {
+                    [-1, 1].forEach(sz => {
+                        const vx = sx * halfW;
+                        const vy = sy * halfH + cyOffset;
+                        const vz = sz * halfD;
+                        cornerPts.push(new THREE.Vector3(vx, vy, vz), new THREE.Vector3(vx - sx * cornerSize, vy, vz));
+                        cornerPts.push(new THREE.Vector3(vx, vy, vz), new THREE.Vector3(vx, vy - sy * cornerSize, vz));
+                        cornerPts.push(new THREE.Vector3(vx, vy, vz), new THREE.Vector3(vx, vy, vz - sz * cornerSize));
+                    });
+                });
+            });
+            const cornerGeo = new THREE.BufferGeometry().setFromPoints(cornerPts);
+            cornerTicksMesh = new THREE.LineSegments(
+                cornerGeo,
+                new THREE.LineBasicMaterial({
+                    color: isObsidian ? 0xf4f4f5 : 0x18181b,
+                    transparent: true,
+                    opacity: 0.85
+                })
+            );
+            schematicGroup.add(cornerTicksMesh);
+
+            // Vertical anchor drop-lines connecting the 4 corners of the image to the bottom of the 3D cube
+            const bottomY = -halfH + cyOffset;
+            const dropPts = [];
+            [
+                [-baseWidth / 2, -baseHeight / 2],
+                [ baseWidth / 2, -baseHeight / 2],
+                [-baseWidth / 2,  baseHeight / 2],
+                [ baseWidth / 2,  baseHeight / 2]
+            ].forEach(([ix, iz]) => {
+                dropPts.push(new THREE.Vector3(ix, 0, iz), new THREE.Vector3(ix, bottomY, iz));
+            });
+            dropLinesMesh = new THREE.LineSegments(
+                new THREE.BufferGeometry().setFromPoints(dropPts),
+                new THREE.LineBasicMaterial({
+                    color: isObsidian ? 0x71717a : 0x71717a,
+                    transparent: true,
+                    opacity: 0.45
+                })
+            );
+            schematicGroup.add(dropLinesMesh);
+
+            // 5. Invisible Flat Hit Plane for Accurate Click-to-Zoom Raycasting
+            const hitGeo = new THREE.PlaneGeometry(baseWidth, baseHeight);
+            hitGeo.rotateX(-Math.PI / 2);
+            const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+            hitPlaneMesh = new THREE.Mesh(hitGeo, hitMat);
+            schematicGroup.add(hitPlaneMesh);
+
+            // 6. Subtle Light Architectural Square Selector (Aligned with the 3D Cube instead of a red circle)
+            focusSquareMesh = new THREE.Group();
+            const sqSize = 1.15;
+            const sqBoxGeo = new THREE.BoxGeometry(sqSize, 0.16, sqSize);
+            const sqEdges = new THREE.LineSegments(
+                new THREE.EdgesGeometry(sqBoxGeo),
+                new THREE.LineBasicMaterial({ color: 0xf4f4f5, transparent: true, opacity: 0.65 })
+            );
+            sqEdges.position.y = 0.08;
+            focusSquareMesh.add(sqEdges);
+
+            const sqFillGeo = new THREE.PlaneGeometry(sqSize, sqSize);
+            sqFillGeo.rotateX(-Math.PI / 2);
+            const sqFill = new THREE.Mesh(
+                sqFillGeo,
+                new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.08, side: THREE.DoubleSide })
+            );
+            sqFill.position.y = 0.02;
+            focusSquareMesh.add(sqFill);
+
+            focusSquareMesh.visible = false;
+            schematicGroup.add(focusSquareMesh);
+        }
+
+        // --- UI Controls & Drag-and-Drop Image Support ---
+        function applyColorScheme() {
+            const bgHex = isObsidian ? 0x0c0c0f : 0xe6e3dd;
+            scene.background.setHex(bgHex);
+            document.body.style.backgroundColor = isObsidian ? '#0c0c0f' : '#e6e3dd';
+
+            if (cubeOutlineMesh) {
+                cubeOutlineMesh.material.color.setHex(isObsidian ? 0xa1a1aa : 0x27272a);
+                cubeOutlineMesh.material.opacity = isObsidian ? 0.38 : 0.45;
+            }
+            if (cornerTicksMesh) {
+                cornerTicksMesh.material.color.setHex(isObsidian ? 0xf4f4f5 : 0x18181b);
+            }
+
+            const statusPill = document.getElementById('status-pill');
+            const statusText = document.getElementById('status-text');
+            const sliderPill = document.getElementById('slider-pill');
+            const instructionPill = document.getElementById('instruction-pill');
+            const hudBtns = document.querySelectorAll('.hud-btn');
+
+            if (isObsidian) {
+                statusPill.className = 'pointer-events-auto flex items-center bg-zinc-900/85 backdrop-blur-md px-4 py-2 rounded-md border border-zinc-700 shadow-sm transition-colors duration-300';
+                statusText.className = 'text-[11px] uppercase tracking-[0.2em] text-zinc-100 font-semibold transition-colors duration-300';
+                sliderPill.className = 'hidden sm:flex items-center space-x-2 bg-zinc-900/85 backdrop-blur-md px-3 py-1.5 rounded-md border border-zinc-700 text-[10px] uppercase tracking-wider text-zinc-200 font-medium shadow-sm transition-colors duration-300';
+                instructionPill.className = 'hidden md:block bg-zinc-900/80 backdrop-blur-md px-3 py-1.5 rounded border border-zinc-700 text-zinc-300 shadow-sm transition-colors duration-300';
+
+                hudBtns.forEach(btn => {
+                    btn.className = btn.className
+                        .replace(/bg-white\/80|bg-white\/90/g, 'bg-zinc-900/85')
+                        .replace(/hover:bg-white/g, 'hover:bg-zinc-800')
+                        .replace(/text-stone-900/g, 'text-zinc-100')
+                        .replace(/border-stone-300/g, 'border-zinc-700');
+                });
+            } else {
+                statusPill.className = 'pointer-events-auto flex items-center bg-white/80 backdrop-blur-md px-4 py-2 rounded-md border border-stone-300 shadow-sm transition-colors duration-300';
+                statusText.className = 'text-[11px] uppercase tracking-[0.2em] text-stone-900 font-semibold transition-colors duration-300';
+                sliderPill.className = 'hidden sm:flex items-center space-x-2 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-md border border-stone-300 text-[10px] uppercase tracking-wider text-stone-800 font-medium shadow-sm transition-colors duration-300';
+                instructionPill.className = 'hidden md:block bg-white/75 backdrop-blur-md px-3 py-1.5 rounded border border-stone-300 text-stone-700 shadow-sm transition-colors duration-300';
+
+                hudBtns.forEach(btn => {
+                    btn.className = btn.className
+                        .replace(/bg-zinc-900\/85/g, 'bg-white/80')
+                        .replace(/hover:bg-zinc-800/g, 'hover:bg-white')
+                        .replace(/text-zinc-100/g, 'text-stone-900')
+                        .replace(/border-zinc-700/g, 'border-stone-300');
+                });
+            }
+        }
+
+        function setupUIControls() {
+            // 3D Relief Slider
+            const reliefSlider = document.getElementById('relief-slider');
+            reliefSlider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                if (extrudeGroup) {
+                    extrudeGroup.scale.y = Math.max(0.001, val);
+                    extrudeGroup.visible = val > 0.02;
+                }
+            });
+
+            // Reverse Color Button (Toggle Alabaster <-> Obsidian)
+            document.getElementById('theme-btn').addEventListener('click', () => {
+                isObsidian = !isObsidian;
+                applyColorScheme();
+                showToast(isObsidian ? 'SCHEME: OBSIDIAN' : 'SCHEME: ALABASTER');
+            });
+
+            // Download Image of 3D Cube Button
+            document.getElementById('download-btn').addEventListener('click', () => {
+                updateCamera();
+                renderer.render(scene, camera);
+                const dataURL = renderer.domElement.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `3d-cube-schematic-${Date.now()}.png`;
+                link.href = dataURL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('DOWNLOADED 3D CUBE PNG');
+            });
+
+            // File Input Upload
+            const fileInput = document.getElementById('image-upload');
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    processUploadedFile(e.target.files[0]);
+                }
+            });
+
+            // Drag & Drop Anywhere on Window
+            window.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+            window.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    processUploadedFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            // Reset Isometric View
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                targetRotation.x = DEFAULT_ROT_X;
+                targetRotation.y = DEFAULT_ROT_Y;
+                targetZoom = 1.05;
+                targetLookAt.set(0, 0, 0);
+                if (focusSquareMesh) focusSquareMesh.visible = false;
+                if (mainShaderMaterial) mainShaderMaterial.uniforms.uFocusPoint.value.set(-10, -10);
+                showToast('ISOMETRIC OVERVIEW RESTORED');
+            });
+        }
+
+        function processUploadedFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const texture = new THREE.Texture(img);
+                    texture.generateMipmaps = true;
+                    texture.minFilter = THREE.LinearMipmapLinearFilter;
+                    texture.magFilter = THREE.LinearFilter;
+                    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                    texture.needsUpdate = true;
+
+                    const aspect = Math.max(0.5, Math.min(2.4, img.width / img.height));
+                    buildSchematicWorld(texture, aspect, true);
+
+                    // Reset camera smoothly for new schematic
+                    targetLookAt.set(0, 0, 0);
+                    targetZoom = 1.05;
+                    showToast('LOADED IMAGE INTO 3D CUBE');
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- Interactive Orbit, Scroll Zoom & Click-to-Zoom ---
+        function setupInteractions() {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                dragDistance = 0;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                dragDistance += Math.abs(deltaX) + Math.abs(deltaY);
+
+                targetRotation.y -= deltaX * 0.0055;
+                targetRotation.x += deltaY * 0.0055;
+
+                // Keep camera within crisp architectural viewing angles
+                targetRotation.x = Math.max(0.25, Math.min(1.42, targetRotation.x));
+
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('mouseup', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+
+                // If it was a clean click (not a drag), raycast and zoom into that spot
+                if (dragDistance < 6) {
+                    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+                    raycaster.setFromCamera(mouse, camera);
+                    if (hitPlaneMesh) {
+                        const intersects = raycaster.intersectObject(hitPlaneMesh);
+                        if (intersects.length > 0) {
+                            const hit = intersects[0];
+                            targetLookAt.copy(hit.point);
+
+                            // Zoom in closer on click, or toggle deeper
+                            targetZoom = targetZoom < 2.2 ? 2.65 : 3.6;
+
+                            // Position subtle light square wireframe aligned with the 3D cube
+                            if (focusSquareMesh) {
+                                focusSquareMesh.position.set(hit.point.x, 0.01, hit.point.z);
+                                focusSquareMesh.visible = true;
+                            }
+                            if (hit.uv && mainShaderMaterial) {
+                                mainShaderMaterial.uniforms.uFocusPoint.value.copy(hit.uv);
+                            }
+
+                            showToast(`ZOOMING TO SECTOR [${hit.point.x.toFixed(1)}, ${hit.point.z.toFixed(1)}]`);
+                        }
+                    }
+                }
+            });
+
+            // Touch Support
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    dragDistance = 0;
+                    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!isDragging || e.touches.length !== 1) return;
+                const deltaX = e.touches[0].clientX - previousMousePosition.x;
+                const deltaY = e.touches[0].clientY - previousMousePosition.y;
+                dragDistance += Math.abs(deltaX) + Math.abs(deltaY);
+
+                targetRotation.y -= deltaX * 0.0055;
+                targetRotation.x += deltaY * 0.0055;
+                targetRotation.x = Math.max(0.25, Math.min(1.42, targetRotation.x));
+
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+
+            // Smooth Orthographic Wheel Zoom
+            window.addEventListener('wheel', (e) => {
+                targetZoom -= e.deltaY * 0.0012;
+                targetZoom = Math.max(0.55, Math.min(5.0, targetZoom));
+            }, { passive: true });
+        }
+
+        function updateCamera() {
+            const radius = 60;
+            const x = cameraTarget.x + radius * Math.sin(currentRotation.y) * Math.cos(currentRotation.x);
+            const y = cameraTarget.y + radius * Math.sin(currentRotation.x);
+            const z = cameraTarget.z + radius * Math.cos(currentRotation.y) * Math.cos(currentRotation.x);
+
+            camera.position.set(x, y, z);
+            camera.lookAt(cameraTarget);
+            camera.zoom = currentZoom;
+            camera.updateProjectionMatrix();
+        }
+
+        function onWindowResize() {
+            const aspect = window.innerWidth / window.innerHeight;
+            const frustumSize = camera.userData.frustumSize;
+            camera.left = -frustumSize * aspect / 2;
+            camera.right = frustumSize * aspect / 2;
+            camera.top = frustumSize / 2;
+            camera.bottom = -frustumSize / 2;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const dt = 0.075;
+            currentRotation.x += (targetRotation.x - currentRotation.x) * dt;
+            currentRotation.y += (targetRotation.y - currentRotation.y) * dt;
+            currentZoom += (targetZoom - currentZoom) * dt;
+            cameraTarget.lerp(targetLookAt, dt);
+
+            if (mainShaderMaterial) {
+                mainShaderMaterial.uniforms.uTime.value += 0.016;
+            }
+
+            updateCamera();
+            renderer.render(scene, camera);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

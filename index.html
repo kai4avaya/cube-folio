@@ -1,0 +1,3571 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cubic Portfolio — Kai Kleinbard</title>
+
+    <!-- Primary SEO Meta Tags -->
+    <meta name="title" property="og:title" content="Cubic Portfolio — Kai Kleinbard">
+    <meta name="description" property="og:description" content="Cubic Portfolio by Kai Kleinbard — an interactive 3D Escher architectural portfolio showcasing spatial interfaces, AI systems, and creative engineering.">
+    <meta name="keywords" content="Cubic Portfolio, Kai Kleinbard, 3D portfolio, interactive portfolio, Escher lattice, Three.js, spatial interfaces, architectural AI systems, WebGL">
+    <meta name="author" content="Kai Kleinbard">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="theme-color" content="#e6e3dd">
+    <link rel="canonical" href="https://kai4avaya.github.io/cube-folio/">
+
+    <!-- Open Graph / LinkedIn Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Cubic Portfolio">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:url" content="https://kai4avaya.github.io/cube-folio/">
+    <meta name="image" property="og:image" content="https://kai4avaya.github.io/cube-folio/og-image.png">
+    <meta property="og:image:secure_url" content="https://kai4avaya.github.io/cube-folio/og-image.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Cubic Portfolio — Kai Kleinbard interactive 3D isometric Escher cube lattice">
+
+    <!-- Twitter / X Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://kai4avaya.github.io/cube-folio/">
+    <meta name="twitter:title" content="Cubic Portfolio — Kai Kleinbard">
+    <meta name="twitter:description" content="Cubic Portfolio by Kai Kleinbard — an interactive 3D Escher architectural portfolio showcasing spatial interfaces, AI systems, and creative engineering.">
+    <meta name="twitter:image" content="https://kai4avaya.github.io/cube-folio/og-image.png">
+    <meta name="twitter:image:alt" content="Cubic Portfolio — Kai Kleinbard interactive 3D isometric Escher cube lattice">
+
+    <!-- Isometric Cube Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpolygon points='32,6 56,20 32,34 8,20' fill='%231d4ed8'/%3E%3Cpolygon points='8,20 32,34 32,58 8,44' fill='%231e3a8a'/%3E%3Cpolygon points='56,20 32,34 32,58 56,44' fill='%233b82f6'/%3E%3C/svg%3E">
+
+    <!-- Structured Data (JSON-LD) for Search Discovery -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Cubic Portfolio — Kai Kleinbard",
+        "alternateName": "Cubic Portfolio",
+        "url": "https://kai4avaya.github.io/cube-folio/",
+        "image": "https://kai4avaya.github.io/cube-folio/og-image.png",
+        "description": "Cubic Portfolio by Kai Kleinbard — an interactive 3D Escher architectural portfolio showcasing spatial interfaces, AI systems, and creative engineering.",
+        "author": {
+            "@type": "Person",
+            "name": "Kai Kleinbard",
+            "url": "https://www.kaik.space/",
+            "sameAs": [
+                "https://www.linkedin.com/in/kai-kleinbard/",
+                "https://github.com/kai4avaya"
+            ]
+        }
+    }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #e6e3dd;
+            --text-primary: #141413;
+            --accent: #1d4ed8;
+            --cube-line: #1e3a8a;
+        }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1), color 0.45s ease;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .brutalist-font {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            letter-spacing: -0.055em;
+            line-height: 0.84;
+            font-weight: 900;
+            font-size: clamp(3.4rem, 7.6vw, 8.2rem);
+        }
+        #canvas-container {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            cursor: grab;
+        }
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+        .hud-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .interactive {
+            pointer-events: auto;
+        }
+        .glass-pill {
+            background: rgba(247, 245, 240, 0.94);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(28, 25, 23, 0.22);
+            box-shadow: 4px 4px 0px rgba(20, 20, 19, 0.12);
+            color: #1c1917;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body.obsidian-mode .glass-pill {
+            background: rgba(20, 20, 23, 0.92);
+            border: 1.5px solid rgba(255, 255, 255, 0.22);
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.65);
+            color: #f5f5f4;
+        }
+        .ctrl-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 7px 10px;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-radius: 6px;
+            border: 1px solid rgba(28, 25, 23, 0.18);
+            background: rgba(255, 255, 255, 0.65);
+            color: #1c1917;
+            transition: all 0.16s ease;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .ctrl-btn:hover {
+            background: #1c1917;
+            color: #f5f5f4;
+            transform: translateY(-1px);
+        }
+        body.obsidian-mode .ctrl-btn {
+            background: rgba(38, 38, 42, 0.85);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: #e7e5e4;
+        }
+        body.obsidian-mode .ctrl-btn:hover {
+            background: #f5f5f4;
+            color: #141413;
+        }
+        /* Distinct styling for Share & Export buttons */
+        .share-btn {
+            background: rgba(29, 78, 216, 0.08);
+            border-color: rgba(29, 78, 216, 0.32);
+            color: #1d4ed8;
+        }
+        .share-btn:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            color: #ffffff;
+        }
+        body.obsidian-mode .share-btn {
+            background: rgba(37, 99, 235, 0.16);
+            border-color: rgba(59, 130, 246, 0.4);
+            color: #93c5fd;
+        }
+        body.obsidian-mode .share-btn:hover {
+            background: #2563eb;
+            color: #ffffff;
+        }
+        .ctrl-btn.active-toggle {
+            background: #1d4ed8 !important;
+            border-color: #1d4ed8 !important;
+            color: #ffffff !important;
+        }
+        /* Collapsible Studio Drawer */
+        #studio-drawer {
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+        }
+        #studio-drawer.drawer-closed {
+            transform: translateX(106%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        /* Split-Screen Right Architectural Dossier Panel */
+        #project-inspector {
+            background: rgba(243, 240, 233, 0.96);
+            color: #141413;
+            border-left: 2px solid rgba(28, 25, 23, 0.18);
+            transition: transform 0.58s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.42s ease, background-color 0.35s ease, color 0.35s ease;
+        }
+        body.obsidian-mode #project-inspector {
+            background: rgba(18, 18, 22, 0.95);
+            color: #f5f5f4;
+            border-left: 2px solid rgba(96, 165, 250, 0.28);
+        }
+        #project-inspector.inspector-hidden {
+            transform: translateX(105%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        /* Left-Side Architectural Callout Overlay (When Zoomed In) */
+        #left-cube-callouts {
+            transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #left-cube-callouts.callouts-hidden {
+            opacity: 0;
+            transform: translateX(-24px);
+            pointer-events: none;
+        }
+        /* Smooth Settings Accordion Transition */
+        #control-buttons-grid {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            margin-bottom: 0;
+            transition: max-height 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, margin-bottom 0.28s ease;
+        }
+        #control-buttons-grid.settings-open {
+            max-height: 460px;
+            opacity: 1;
+            margin-bottom: 10px;
+        }
+        /* Custom scrollbar for studio drawer */
+        .custom-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(120, 113, 108, 0.4);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D WebGL Viewport -->
+    <div id="canvas-container" title="Drag to orbit • Scroll to descend & build cubes • Click any cube to inspect 3D + Real schematic"></div>
+
+    <!-- Dynamic Hover SVG Leader Line & Callout Overlay -->
+    <svg id="hover-svg" class="fixed inset-0 w-full h-full pointer-events-none z-20 hidden">
+        <polyline id="hover-leader-line" fill="none" stroke="#1d4ed8" stroke-width="1.8" stroke-dasharray="4 3" points="0,0 0,0 0,0" />
+        <circle id="hover-anchor-dot" cx="0" cy="0" r="4" fill="#1d4ed8" />
+        <rect id="hover-joint-box" x="0" y="0" width="6" height="6" fill="#141413" stroke="#1d4ed8" stroke-width="1.5" />
+    </svg>
+
+    <div id="hover-callout-card" class="fixed pointer-events-none z-20 hidden max-w-xs transition-opacity duration-150">
+        <div class="glass-pill px-3.5 py-2.5 rounded-lg border-l-4 border-l-blue-700">
+            <div class="flex items-center justify-between gap-3 mb-0.5">
+                <span id="hover-proj-order" class="mono text-[10px] font-bold uppercase tracking-widest text-blue-700">CUBE #01</span>
+                <span id="hover-proj-tag" class="mono text-[9px] uppercase tracking-wider opacity-60">SPATIAL UI</span>
+            </div>
+            <div id="hover-proj-title" class="mono text-xs font-extrabold tracking-tight uppercase">K.AI // QUERYING THE GRID</div>
+            <p id="hover-proj-desc" class="text-[11px] leading-snug opacity-80 mt-1">Interactive AI agent portfolio & spatial matrix.</p>
+        </div>
+    </div>
+
+    <!-- Upside-Down Reflection Typography (Lowered to the very bottom edge on the opposite side of the main header) -->
+    <div id="bottom-mirrored-header" class="fixed bottom-1.5 right-5 sm:bottom-2.5 sm:right-7 z-10 pointer-events-none cursor-pointer select-none text-left opacity-0 transition-opacity duration-500" style="transform: rotate(180deg);" title="Click to spin Inception world 180°">
+        <h2 id="display-mirror-name" class="brutalist-font uppercase tracking-tighter">
+            KAI KLEINBARD
+        </h2>
+        <div class="flex items-center gap-2.5 mt-2">
+            <span class="inline-block w-5 h-2 bg-blue-700"></span>
+            <p id="display-mirror-sub" class="mono text-xs sm:text-sm font-bold uppercase tracking-[0.22em] opacity-85">
+                ARCHITECTURAL AI SYSTEMS // SPATIAL INTERFACES
+            </p>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal for Enlarged Un-Cubed Raw Screenshot -->
+    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 sm:p-10 interactive">
+        <div class="relative max-w-5xl w-full bg-stone-950 border border-stone-700 rounded-xl overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-stone-800 bg-stone-900/90">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                    <span id="lightbox-title" class="mono text-xs font-bold uppercase tracking-wider text-stone-100">ORIGINAL UN-CUBED INTERFACE</span>
+                </div>
+                <button id="close-lightbox-btn" class="mono text-xs font-bold uppercase px-3 py-1 rounded bg-stone-800 text-stone-200 hover:bg-blue-700 hover:text-white transition">
+                    Close [ESC]
+                </button>
+            </div>
+            <div class="p-4 sm:p-6 flex items-center justify-center bg-stone-950 max-h-[80vh] overflow-auto">
+                <img id="lightbox-img" src="" alt="Original Un-Cubed Project Media" class="max-w-full max-h-[72vh] object-contain rounded border border-stone-800 shadow-lg" />
+                <video id="lightbox-video" controls autoplay loop playsinline class="hidden max-w-full max-h-[72vh] rounded border border-stone-800 shadow-lg"></video>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUD Overlay -->
+    <div class="hud-layer flex flex-col justify-between p-5 sm:p-7">
+
+        <!-- Top Bar: Brutalist Editorial Typography Left + Settings Control Panel Right -->
+        <div class="w-full">
+            <!-- Brutalist Unboxed Upper-Left Identity (Remains right-side up; subheader moves above title when inverted) -->
+            <div id="top-brutalist-header" class="fixed top-5 left-5 sm:top-7 sm:left-7 z-20 select-none pointer-events-none flex flex-col transition-all duration-700 ease-out">
+                <h1 id="display-creator-name" class="brutalist-font uppercase tracking-tighter">
+                    KAI KLEINBARD
+                </h1>
+                <div id="display-sub-row" class="flex items-center gap-2.5 mt-2.5">
+                    <span class="inline-block w-5 h-2 bg-blue-700"></span>
+                    <p id="display-creator-sub" class="mono text-xs sm:text-sm font-bold uppercase tracking-[0.22em] opacity-85">
+                        ARCHITECTURAL AI SYSTEMS // SPATIAL INTERFACES
+                    </p>
+                </div>
+            </div>
+
+            <!-- Upper-Right Settings Panel (Glides to bottom or left without ever inverting internal buttons/text) -->
+            <div id="settings-panel-wrapper" class="fixed top-5 right-5 sm:top-7 sm:right-7 z-20 interactive glass-pill rounded-xl p-2.5 max-w-xs sm:max-w-sm transition-all duration-700 ease-out">
+                <div class="flex items-center justify-between gap-4 pb-1.5 mb-2 border-b border-stone-400/30">
+                    <button id="settings-header-btn" class="flex items-center gap-1.5 mono text-[10px] font-extrabold uppercase tracking-widest opacity-80 hover:opacity-100 transition cursor-pointer">
+                        <svg id="settings-gear-icon" class="w-3.5 h-3.5 text-blue-700 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                        </svg>
+                        <span>SETTINGS</span>
+                    </button>
+                    <button id="toggle-panel-size-btn" class="mono text-[10px] font-bold opacity-75 hover:opacity-100 px-1.5 py-0.5 rounded hover:bg-stone-500/10" title="Expand / Minimize Settings">
+                        [+]
+                    </button>
+                </div>
+
+                <!-- Collapsible Settings Options + Distinct Share & Export Section -->
+                <div id="control-buttons-grid">
+                    <!-- Scene & Camera Controls -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pb-2">
+                        <button id="regen-shape-btn" class="ctrl-btn" title="Regenerate Random Escher Lattice">
+                            <svg class="w-3.5 h-3.5 text-blue-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span>Regen</span>
+                        </button>
+
+                        <button id="reset-btn" class="ctrl-btn" title="Reset Isometric View & Re-Assemble">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3"/>
+                            </svg>
+                            <span>Reset Iso</span>
+                        </button>
+
+                        <button id="inception-invert-btn" class="ctrl-btn" title="Inception 180° Camera Spin">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                            </svg>
+                            <span id="invert-btn-text">Invert</span>
+                        </button>
+
+                        <button id="inception-mirror-btn" class="ctrl-btn" title="Mirror Left / Right">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                            <span>Flip L/R</span>
+                        </button>
+
+                        <button id="reverse-color-btn" class="ctrl-btn col-span-2 sm:col-span-2" title="Toggle Alabaster / Obsidian Scheme">
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                            </svg>
+                            <span id="color-scheme-text">Scheme: Alabaster</span>
+                        </button>
+                    </div>
+
+                    <!-- Dedicated Share & Export Section -->
+                    <div class="pt-2 border-t border-stone-400/30">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="mono text-[9px] font-extrabold uppercase tracking-widest text-blue-700">SHARE & EXPORT</span>
+                            <span class="mono text-[8px] uppercase opacity-60">CLEAN OUTPUT</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button id="download-btn" class="ctrl-btn share-btn" title="Download Clean PNG Snapshot (Without UI)">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                </svg>
+                                <span>SNAPSHOT</span>
+                            </button>
+
+                            <button id="quick-share-url-btn" class="ctrl-btn share-btn" title="Generate & Copy Shareable Portfolio URL">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                </svg>
+                                <span>SHARE URL</span>
+                            </button>
+
+                            <button id="quick-export-html-btn" class="ctrl-btn share-btn" title="Download Standalone HTML Portfolio (Without Builder UI)">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                <span>EXPORT HTML</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Inline Share URL Box inside Settings when generated -->
+                    <div id="settings-share-url-box" class="hidden mt-2 p-2 rounded bg-stone-900/10 border border-stone-400/30">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="mono text-[9px] font-bold uppercase text-emerald-700">Share Link Copied!</span>
+                            <button id="close-settings-url-box" class="mono text-[9px] font-bold uppercase opacity-60 hover:opacity-100">✕</button>
+                        </div>
+                        <input id="settings-share-url-input" type="text" readonly class="w-full text-[10px] mono px-2 py-1 rounded bg-white/90 text-stone-800 border border-stone-300 focus:outline-none" />
+                    </div>
+                </div>
+
+                <!-- Always-Visible Primary CTA: CREATE YOUR OWN -->
+                <div id="create-your-own-container">
+                    <button id="toggle-studio-btn" class="w-full py-2 px-3 rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition flex items-center justify-center gap-2 mono text-[11px] font-bold uppercase tracking-wider shadow-sm cursor-pointer">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        <span>CREATE YOUR OWN</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Left-Side Dual-Cube Architectural Spec Callouts (Appears around the left-shifted cube on zoom) -->
+        <div id="left-cube-callouts" class="callouts-hidden fixed inset-y-0 left-0 w-full md:w-[54%] z-20 pointer-events-none flex flex-col justify-between p-5 sm:p-8">
+            <!-- Top Spacer below main header -->
+            <div class="mt-24 sm:mt-28 flex items-center gap-3">
+                <div class="glass-pill px-3 py-1.5 rounded-md border-l-4 border-l-blue-700 flex items-center gap-2.5">
+                    <span class="w-2 h-2 rounded-full bg-blue-700 animate-pulse"></span>
+                    <span id="left-active-code" class="mono text-[10px] font-bold uppercase tracking-widest">ISO-CUTAWAY // DRAG CUBE TO SPIN 360°</span>
+                </div>
+            </div>
+
+            <!-- Middle Technical Leader Callouts pointing to Upper 3D Cube & Lower Real Sub-Cube -->
+            <div class="hidden sm:flex flex-col justify-center gap-28 my-auto pl-2">
+                <!-- Upper Cube Callout -->
+                <div class="flex items-center gap-3 max-w-xs">
+                    <div class="text-right">
+                        <div class="mono text-[9px] font-extrabold uppercase tracking-widest text-blue-700">STRATUM 01 // 3D SCHEMATIC</div>
+                        <div id="left-callout-top" class="mono text-[11px] font-bold uppercase opacity-85">PROCEDURAL TOPOLOGY & NODES</div>
+                        <div class="mono text-[9px] opacity-60">Volumetric isometric cutaway</div>
+                    </div>
+                    <div class="w-14 h-[1.5px] bg-blue-700/80 relative">
+                        <span class="absolute right-0 -top-1 w-2 h-2 rounded-full bg-blue-700"></span>
+                    </div>
+                </div>
+
+                <!-- Lower Sub-Cube Callout -->
+                <div class="flex items-center gap-3 max-w-xs">
+                    <div class="text-right">
+                        <div class="mono text-[9px] font-extrabold uppercase tracking-widest text-blue-700">STRATUM 02 // REAL INTERFACE</div>
+                        <div id="left-callout-bottom" class="mono text-[11px] font-bold uppercase opacity-85">LIVE PRODUCTION SUB-CUBE</div>
+                        <div class="mono text-[9px] opacity-60">Unfolded interface plane</div>
+                    </div>
+                    <div class="w-16 h-[1.5px] bg-blue-700/80 relative">
+                        <span class="absolute right-0 -top-1 w-2 h-2 rounded-full bg-blue-700"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Interactive Drag & Spin Bar -->
+            <div class="flex items-center justify-between gap-3">
+                <div class="glass-pill px-3.5 py-2 rounded-lg flex items-center gap-3 interactive">
+                    <button id="spin-impulse-btn" class="ctrl-btn" title="Give Cube a 360° Spin Impulse">
+                        <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>Spin Cube</span>
+                    </button>
+                    <span class="mono text-[10px] font-bold uppercase opacity-75 hidden sm:inline">Drag Left View to Circle & Inspect</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right-Side Sliding Architectural Dossier Panel (Inspired by Reference Split-Screen Blueprint) -->
+        <aside id="project-inspector" class="inspector-hidden fixed top-0 right-0 h-full w-full md:w-[46%] lg:w-[44%] z-30 glass-pill p-5 sm:p-7 flex flex-col justify-between interactive overflow-hidden shadow-2xl">
+            <!-- Top Navigation Bar inside Right Panel -->
+            <div class="flex items-center justify-between gap-2 pb-4 border-b border-stone-400/40 dark:border-blue-900/30">
+                <div class="flex items-center gap-2">
+                    <span id="inspector-order" class="mono text-[11px] font-extrabold uppercase px-2.5 py-1 rounded bg-blue-700 text-white">CUBE #01</span>
+                    <span id="inspector-tag" class="mono text-[10px] font-bold uppercase tracking-widest text-blue-800 dark:text-blue-300">PORTFOLIO CORE</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button id="prev-cube-btn" class="ctrl-btn" title="Slide to Previous Project Cube">← Prev</button>
+                    <button id="next-cube-btn" class="ctrl-btn" title="Slide to Next Project Cube">Next →</button>
+                    <button id="close-inspector-btn" class="px-3 py-1.5 rounded-md bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 mono text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700 hover:text-white transition cursor-pointer">
+                        Lattice ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Middle Content: Title, Architectural Spec, 3-Tier Exploded Isometric Diagrams & Raw Screenshot -->
+            <div class="my-4 flex-1 overflow-y-auto custom-scroll pr-1.5 space-y-5">
+                <!-- Project Title & Summary -->
+                <div>
+                    <div class="mono text-[10px] font-bold uppercase tracking-[0.2em] text-blue-700 dark:text-blue-400 mb-1">ARCHITECTURAL SYSTEM DOSSIER</div>
+                    <h2 id="inspector-title" class="text-2xl sm:text-3xl font-black tracking-tight uppercase mono leading-none">
+                        K.AI // GRID PORTFOLIO
+                    </h2>
+                    <p id="inspector-desc" class="text-xs sm:text-sm opacity-85 leading-relaxed mt-2.5">
+                        Interactive spatial portfolio interface. Top cube displays 3D architectural cutaway; lower sub-cube projects the live interface.
+                    </p>
+
+                    <div class="mt-3.5 flex flex-wrap items-center gap-2.5">
+                        <a id="inspector-live-url" href="https://www.kaik.space/" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition mono text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-2 shadow-sm">
+                            <span>Launch Live Project</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                            </svg>
+                        </a>
+                        <span id="inspector-private-badge" class="hidden px-3.5 py-2 rounded-lg border border-stone-400/45 dark:border-stone-700 mono text-[10px] font-bold uppercase tracking-wider opacity-75">
+                            PRIVATE REPO // NO PUBLIC UI
+                        </span>
+                        <button id="enlarge-raw-btn" class="ctrl-btn py-2.5 px-3">
+                            <span id="enlarge-raw-label">Fullscreen Raw Media +</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3-Tier Exploded Isometric Cutaway Breakdown (Right-Column Reference Style) -->
+                <div class="p-4 rounded-xl bg-[#faf8f4]/90 dark:bg-stone-900/75 border border-stone-400/35 dark:border-blue-900/30 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="mono text-[10px] font-extrabold uppercase tracking-widest text-blue-800 dark:text-blue-300">EXPLODED ISOMETRIC STRATA (CLICK TO ROTATE CUBE)</span>
+                        <span class="mono text-[9px] uppercase opacity-60">3 LEVELS</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <!-- Level 01 Isometric Card -->
+                        <button data-angle="0.6" class="iso-stratum-card group p-2.5 rounded-lg border border-stone-400/35 dark:border-blue-900/30 bg-[#f0ede6]/85 dark:bg-stone-800/60 hover:border-blue-700 transition text-left cursor-pointer">
+                            <svg class="w-full h-20 mx-auto mb-1.5" viewBox="0 0 100 80">
+                                <polygon points="50,8 90,26 50,44 10,26" fill="rgba(37,99,235,0.18)" stroke="#1d4ed8" stroke-width="1.6"/>
+                                <polygon points="10,26 50,44 50,66 10,48" fill="rgba(37,99,235,0.32)" stroke="#1d4ed8" stroke-width="1.4"/>
+                                <polygon points="90,26 50,44 50,66 90,48" fill="rgba(29,78,216,0.12)" stroke="#1d4ed8" stroke-width="1.4"/>
+                                <circle cx="50" cy="26" r="4" fill="#e11d48"/>
+                            </svg>
+                            <div class="mono text-[9px] font-bold uppercase text-blue-700 dark:text-blue-400">LEVEL 01 // CANOPY</div>
+                            <div id="stratum-1-label" class="mono text-[10px] font-extrabold uppercase truncate">TELEMETRY & SHADER</div>
+                        </button>
+
+                        <!-- Level 02 Isometric Card -->
+                        <button data-angle="2.15" class="iso-stratum-card group p-2.5 rounded-lg border border-stone-400/35 dark:border-blue-900/30 bg-[#f0ede6]/85 dark:bg-stone-800/60 hover:border-blue-700 transition text-left cursor-pointer">
+                            <svg class="w-full h-20 mx-auto mb-1.5" viewBox="0 0 100 80">
+                                <polygon points="50,12 88,30 50,48 12,30" fill="rgba(37,99,235,0.24)" stroke="#1d4ed8" stroke-width="1.6"/>
+                                <line x1="30" y1="21" x2="70" y2="39" stroke="#1d4ed8" stroke-width="1.4"/>
+                                <line x1="70" y1="21" x2="30" y2="39" stroke="#1d4ed8" stroke-width="1.4"/>
+                                <polygon points="35,24 65,24 50,14" fill="#e11d48" opacity="0.85"/>
+                                <polygon points="12,30 50,48 50,68 12,50" fill="rgba(37,99,235,0.16)" stroke="#1d4ed8" stroke-width="1.4"/>
+                                <polygon points="88,30 50,48 50,68 88,50" fill="rgba(37,99,235,0.28)" stroke="#1d4ed8" stroke-width="1.4"/>
+                            </svg>
+                            <div class="mono text-[9px] font-bold uppercase text-blue-700 dark:text-blue-400">LEVEL 02 // CORE</div>
+                            <div id="stratum-2-label" class="mono text-[10px] font-extrabold uppercase truncate">AGENTIC ROUTING</div>
+                        </button>
+
+                        <!-- Level 03 Isometric Card -->
+                        <button data-angle="-1.25" class="iso-stratum-card group p-2.5 rounded-lg border border-stone-400/35 dark:border-blue-900/30 bg-[#f0ede6]/85 dark:bg-stone-800/60 hover:border-blue-700 transition text-left cursor-pointer">
+                            <svg class="w-full h-20 mx-auto mb-1.5" viewBox="0 0 100 80">
+                                <polygon points="50,16 86,33 50,50 14,33" fill="rgba(30,58,138,0.15)" stroke="#1d4ed8" stroke-width="1.5"/>
+                                <rect x="44" y="25" width="12" height="22" fill="rgba(37,99,235,0.35)" stroke="#1d4ed8" stroke-width="1.3"/>
+                                <polygon points="14,33 50,50 50,70 14,53" fill="rgba(37,99,235,0.38)" stroke="#1d4ed8" stroke-width="1.4"/>
+                                <polygon points="86,33 50,50 50,70 86,53" fill="rgba(37,99,235,0.22)" stroke="#1d4ed8" stroke-width="1.4"/>
+                            </svg>
+                            <div class="mono text-[9px] font-bold uppercase text-blue-700 dark:text-blue-400">LEVEL 03 // BASE</div>
+                            <div id="stratum-3-label" class="mono text-[10px] font-extrabold uppercase truncate">SUB-CUBE INTERFACE</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Original Un-Cubed Live Interface Screenshot / Video Card -->
+                <div class="p-3.5 rounded-xl bg-[#faf8f4]/90 dark:bg-stone-900/75 border border-stone-400/35 dark:border-blue-900/30 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span id="inspector-media-label" class="mono text-[10px] font-extrabold uppercase tracking-widest text-blue-800 dark:text-blue-300">UN-CUBED ORIGINAL INTERFACE</span>
+                        <span id="inspector-media-hint" class="mono text-[9px] uppercase opacity-65">CLICK IMAGE TO ENLARGE</span>
+                    </div>
+                    <div id="inspector-thumb-wrap" class="relative group w-full h-44 sm:h-52 rounded-lg overflow-hidden border border-stone-400/45 dark:border-stone-700 bg-[#e6e3dd] dark:bg-stone-950 cursor-pointer shadow-inner" title="Click to enlarge raw un-cubed media">
+                        <span id="inspector-media-badge" class="hidden absolute top-2.5 right-2.5 z-10 px-2 py-0.5 rounded bg-blue-700/95 text-white mono text-[9px] font-bold uppercase tracking-wider shadow">▶ DEMO VIDEO</span>
+                        <img id="inspector-raw-img" src="" alt="Project Raw Preview" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                        <video id="inspector-raw-video" muted loop playsinline autoplay class="hidden w-full h-full object-cover"></video>
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                            <span id="inspector-overlay-cta" class="mono text-[10px] font-bold uppercase tracking-wider text-white bg-blue-700 px-3 py-1.5 rounded-md shadow">Enlarge Raw Screenshot +</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Architectural Telemetry Matrix -->
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="p-2.5 rounded-lg bg-[#faf8f4]/85 dark:bg-stone-900/65 border border-stone-400/35 dark:border-blue-900/20">
+                        <div class="mono text-[9px] uppercase opacity-60">COORDINATE</div>
+                        <div id="spec-coord" class="mono text-xs font-extrabold text-blue-700 dark:text-blue-400 mt-0.5">ISO // (0, 0, 0)</div>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-[#faf8f4]/85 dark:bg-stone-900/65 border border-stone-400/35 dark:border-blue-900/20">
+                        <div class="mono text-[9px] uppercase opacity-60">PROJECTION</div>
+                        <div class="mono text-xs font-extrabold mt-0.5">35.26° // ORTHO</div>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-[#faf8f4]/85 dark:bg-stone-900/65 border border-stone-400/35 dark:border-blue-900/20">
+                        <div class="mono text-[9px] uppercase opacity-60">RENDER MODE</div>
+                        <div class="mono text-xs font-extrabold mt-0.5">DUAL CUTAWAY</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Sequential Node Switcher Footer -->
+            <div class="pt-3 border-t border-stone-400/40 dark:border-blue-900/30 flex items-center justify-between gap-2">
+                <button id="footer-prev-btn" class="ctrl-btn py-2 px-3">
+                    <span>← Slide Prev Node</span>
+                </button>
+                <span id="inspector-progress-label" class="mono text-[10px] font-bold uppercase opacity-70">NODE 01 / 18</span>
+                <button id="footer-next-btn" class="px-3.5 py-2 rounded-md bg-blue-700 text-white hover:bg-blue-800 transition mono text-[10px] font-bold uppercase tracking-wider cursor-pointer">
+                    <span>Slide Next Node →</span>
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Collapsible "CREATE YOUR OWN" Drawer -->
+    <aside id="studio-drawer" class="drawer-closed fixed top-0 right-0 h-full w-full sm:w-[430px] z-40 glass-pill border-l border-stone-400/30 p-5 flex flex-col justify-between interactive overflow-hidden">
+        <div class="flex items-center justify-between pb-3 border-b border-stone-400/25">
+            <div>
+                <span class="mono text-[10px] uppercase tracking-widest text-blue-700 font-bold">PROCEDURAL GENERATOR</span>
+                <h3 class="text-base font-extrabold tracking-tight uppercase mono">CREATE YOUR OWN</h3>
+            </div>
+            <button id="close-studio-btn" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-500/15 transition mono text-sm font-bold">
+                ✕
+            </button>
+        </div>
+
+        <div class="my-3 flex-1 overflow-y-auto custom-scroll pr-1 space-y-4">
+            <!-- Section 1: Creator Identity -->
+            <div class="p-3 rounded-xl bg-stone-500/10 border border-stone-400/25 space-y-2.5">
+                <span class="mono text-[10px] font-bold uppercase tracking-wider text-blue-700 block">1. Portfolio Identity</span>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-wider opacity-70 mb-1">Creator / Portfolio Name</label>
+                    <input id="creator-name-input" type="text" value="KAI KLEINBARD" class="w-full text-xs font-bold px-2.5 py-1.5 rounded border border-stone-300 bg-white/90 text-stone-900 focus:outline-none focus:border-blue-700">
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-wider opacity-70 mb-1">Portfolio Subheading</label>
+                    <input id="creator-sub-input" type="text" value="ARCHITECTURAL AI SYSTEMS // SPATIAL INTERFACES" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 bg-white/90 text-stone-900 focus:outline-none focus:border-blue-700">
+                </div>
+            </div>
+
+            <!-- Section 2: Forced Ordering & Randomizer -->
+            <div class="p-3 rounded-xl bg-stone-500/10 border border-stone-400/25 space-y-2">
+                <div class="flex items-center justify-between">
+                    <label for="force-order-toggle" class="text-xs font-semibold cursor-pointer">Force Numbered Ordering</label>
+                    <input id="force-order-toggle" type="checkbox" checked class="accent-blue-700 w-4 h-4 cursor-pointer">
+                </div>
+                <p class="text-[11px] opacity-75 leading-relaxed">
+                    Escher lattice geometry is always randomized, while project <span class="mono font-semibold">#01</span> is guaranteed to anchor the top pinnacle cube.
+                </p>
+                <button id="studio-regen-btn" class="w-full py-2 rounded-lg bg-stone-900 text-white hover:bg-blue-700 transition mono text-[11px] font-bold uppercase tracking-wider">
+                    Regenerate Random Escher Shape
+                </button>
+            </div>
+
+            <!-- Section 3: Add New Project Cube Form -->
+            <div class="p-3.5 rounded-xl border border-stone-400/30 space-y-2.5 bg-white/40">
+                <div class="flex items-center justify-between">
+                    <span class="mono text-[10px] font-bold uppercase tracking-wider text-blue-700">2. Add Project Cube</span>
+                    <span class="mono text-[10px] opacity-60">Auto-3D Schematized</span>
+                </div>
+                <input id="new-proj-title" type="text" placeholder="Project Name (e.g. NEURAL LATENT GRID)" class="w-full text-xs px-3 py-2 rounded-lg border border-stone-300 bg-white/90 text-stone-900 focus:outline-none focus:border-blue-700">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-wider opacity-70 mb-1">Category / Tag</label>
+                        <input id="new-proj-tag" type="text" placeholder="SPATIAL UI" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 focus:outline-none focus:border-stone-800 bg-white/90 text-stone-900">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-wider opacity-70 mb-1">Forced Order #</label>
+                        <input id="new-proj-order" type="number" min="1" value="13" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 focus:outline-none focus:border-stone-800 bg-white/90 text-stone-900">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-wider opacity-70 mb-1">Live Project URL</label>
+                    <input id="new-proj-url" type="url" placeholder="https://your-project-site.com" class="w-full text-xs px-3 py-1.5 rounded border border-stone-300 bg-white/90 text-stone-900 focus:outline-none focus:border-blue-700">
+                </div>
+                <textarea id="new-proj-desc" rows="2" placeholder="Brief architectural description shown on hover & zoom..." class="w-full text-xs px-3 py-2 rounded-lg border border-stone-300 bg-white/90 text-stone-900 focus:outline-none focus:border-blue-700"></textarea>
+
+                <div class="flex items-center justify-between gap-2 pt-1">
+                    <label class="flex-1 py-2 px-3 rounded-lg border border-dashed border-stone-400 hover:border-blue-700 cursor-pointer text-center transition bg-white/50">
+                        <span id="upload-filename" class="mono text-[10px] font-semibold uppercase">Upload Screenshot (Optional)</span>
+                        <input id="new-proj-image" type="file" accept="image/*" class="hidden">
+                    </label>
+                    <button id="add-proj-btn" class="px-4 py-2 rounded-lg bg-blue-700 text-white mono text-xs font-bold uppercase tracking-wider hover:bg-blue-800 transition">
+                        + Add Cube
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section 4: Active Cubes List -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="mono text-[10px] font-bold uppercase tracking-wider opacity-70">3. Active Portfolio Cubes</span>
+                    <span id="cube-count-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-stone-500/20 font-bold">12 CUBES</span>
+                </div>
+                <div id="studio-project-list" class="space-y-2"></div>
+            </div>
+
+            <!-- Section 5: Publish, Export HTML, Clean Screenshot & Share URL -->
+            <div class="p-3.5 rounded-xl bg-blue-700/10 border border-blue-700/30 space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <span class="mono text-[10px] font-bold uppercase tracking-wider text-blue-700">4. Publish / Export Portfolio</span>
+                    <span class="mono text-[9px] uppercase opacity-70">No Builder UI</span>
+                </div>
+
+                <!-- Dynamic Notice if user uploaded custom image files -->
+                <div id="custom-media-host-notice" class="hidden p-2.5 rounded-lg bg-amber-500/15 border border-amber-600/40 text-[11px] leading-snug text-amber-950 dark:text-amber-200">
+                    <strong class="mono uppercase text-[10px] block mb-0.5">Note on Uploaded Media:</strong>
+                    You have attached custom screenshots. When hosting your exported website or sharing via URL, place your image files into your website host directory—otherwise missing media will automatically fall back to our procedural <strong>3D Schematic Creator Stubs</strong>.
+                </div>
+
+                <div class="grid grid-cols-1 gap-2">
+                    <button id="export-standalone-html-btn" class="w-full py-2 px-3 rounded-lg bg-stone-900 text-white hover:bg-blue-700 transition mono text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        <span>Download Standalone Website (.HTML)</span>
+                    </button>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="export-clean-screenshot-btn" class="py-2 px-2.5 rounded-lg border border-stone-400/50 bg-white/80 text-stone-900 hover:bg-stone-900 hover:text-white transition mono text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                            </svg>
+                            <span>SNAPSHOT</span>
+                        </button>
+
+                        <button id="generate-share-url-btn" class="py-2 px-2.5 rounded-lg border border-stone-400/50 bg-white/80 text-stone-900 hover:bg-blue-700 hover:text-white hover:border-blue-700 transition mono text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                            </svg>
+                            <span>Copy Share URL</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Shareable URL Output Box -->
+                <div id="share-url-box" class="hidden pt-1">
+                    <label class="block mono text-[9px] uppercase opacity-70 mb-1">Compressed Portfolio URL String (Copied):</label>
+                    <input id="share-url-input" type="text" readonly class="w-full text-[10px] mono px-2 py-1.5 rounded border border-stone-300 bg-white/90 text-stone-800 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-2.5 border-t border-stone-400/25 text-[11px] opacity-70 flex items-center justify-between mono">
+            <span>ESCHER ISO-ENGINE v4.8</span>
+            <span>SCROLL TO BUILD & REFLECT</span>
+        </div>
+    </aside>
+
+    <!-- Non-blocking Toast Notification -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 glass-pill px-4 py-2 rounded-full text-xs mono uppercase tracking-wider opacity-0 transition-opacity duration-300 pointer-events-none">
+        LATTICE UPDATED
+    </div>
+
+    <script>
+        // --- Embedded Standalone Export Flag (Set to true when user downloads standalone HTML) ---
+        const IS_STANDALONE_EXPORT = false;
+
+        // --- Core Application State ---
+        let scene, camera, renderer;
+        let worldGroup, primaryLatticeGroup, bridgeLinesGroup;
+        let raycaster, mouse;
+        let isDragging = false;
+        let pointerDownPos = { x: 0, y: 0 };
+        let previousMousePosition = { x: 0, y: 0 };
+
+        // Portfolio Creator Identity
+        let portfolioIdentity = {
+            name: 'KAI KLEINBARD',
+            subheading: 'ARCHITECTURAL AI SYSTEMS // SPATIAL INTERFACES'
+        };
+
+        // True Isometric Camera Angles for Non-Overlapping Honeycomb Alignment
+        const DEFAULT_ROT_X = Math.atan(1 / Math.sqrt(2)); // ~35.264 deg
+        const DEFAULT_ROT_Y = -Math.PI / 4;                // -45 deg
+        let targetRotation = { x: DEFAULT_ROT_X, y: DEFAULT_ROT_Y, z: 0 };
+        let currentRotation = { x: DEFAULT_ROT_X, y: DEFAULT_ROT_Y, z: 0 };
+
+        // Responsive Zoom Calculation: Larger cubes across all screen sizes
+        function getResponsiveBaseZoom() {
+            const w = window.innerWidth;
+            if (w <= 1100) return 1.18;
+            const scaleBoost = 1 + ((w - 1100) / 850) * 0.68;
+            return Math.min(2.45, 1.18 * scaleBoost);
+        }
+
+        let currentZoom = getResponsiveBaseZoom() * 0.85;
+        let targetZoom = getResponsiveBaseZoom();
+
+        let cameraTarget = new THREE.Vector3(0.75, 1.75, -0.75);
+        let targetLookAt = new THREE.Vector3(0.75, 1.75, -0.75);
+
+        let isInvertedWorld = false; // Inception upside-down flip
+        let isMirroredLR = false;    // Left/Right horizontal flip
+        let currentScaleX = 1;
+        let targetScaleX = 1;
+
+        // Camera Spin Angle (for Inception 180-degree camera roll)
+        let currentCameraRoll = 0;
+        let targetCameraRoll = 0;
+
+        let isObsidianScheme = false;
+        let scrollOffset = 0.0;
+        let targetScrollOffset = 0.0;
+        let isMainHeaderVisible = true;
+
+        let activeProjectIndex = -1;
+        let hoveredProjectIndex = -1;
+        let isTransitioningNodes = false;
+        let transitionTimer = null;
+        let pendingUploadedTexture = null;
+        let pendingUploadedDataUrl = null;
+        let cubeNodes = []; // Holds 3D Group & metadata for each Escher project cube
+
+        const container = document.getElementById('canvas-container');
+        const toast = document.getElementById('toast');
+
+        // --- Kai Kleinbard Real 18-Cube Portfolio Projects ---
+        let portfolioProjects = [
+            {
+                id: 'kaik-home',
+                order: 1,
+                title: 'K.AI // GRID PORTFOLIO',
+                tag: 'PORTFOLIO CORE // 01',
+                url: 'https://www.kaik.space/',
+                desc: 'Interactive warpable grid portfolio built with React, Three.js, and Vercel Fluid Compute. Building AI agents to navigate messy data and crafting UIs that anchor the entropy.',
+                type: 'kai_origami',
+                previewImage: './assets/projects/kaik-home.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/kaik-home.jpg'
+            },
+            {
+                id: 'aieng4d',
+                order: 2,
+                title: 'AIENG4D // GLOBAL EDGE AI',
+                tag: 'MLSYSBOOK // 02',
+                url: 'https://aieng4d.mlsysbook.ai/',
+                desc: 'AI Engineering for Global Impact (formerly TinyML4D) — empowering learners and institutions across the Global South with open-access textbooks, hardware kits, workshops, and Edge AI tools.',
+                type: 'memory_towers',
+                previewImage: './assets/projects/aieng4d.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/aieng4d.jpg'
+            },
+            {
+                id: 'arch-scholar',
+                order: 3,
+                title: 'ARCHSCHOLAR V2 // PAPER GRADER',
+                tag: 'ASPLOS 2026 // 03',
+                url: 'https://harvard-edge.github.io/asplos-26-arch-2-workshop/',
+                desc: 'Semantic paper embedding search (Supabase GTE-small vector similarity + recency-weighted re-ranking) paired with ArchScholar V2 sequential multi-agent scientific paper grading, live MCP tool streaming, and Zod-validated structured JSON review synthesis.',
+                type: 'memory_towers',
+                previewImage: './assets/projects/ArchScholar/Screenshot%202026-11-20%204.38.36%20PM.png',
+                previewVideo: './assets/projects/ArchScholar/arch-scholar.webm',
+                customTexture: null,
+                previewDataUrl: './assets/projects/ArchScholar/Screenshot%202026-11-20%204.38.36%20PM.png'
+            },
+            {
+                id: 'quarch',
+                order: 4,
+                title: 'QUARCH.AI // HARDWARE BENCHMARK',
+                tag: 'HARVARD EDGE // 04',
+                url: 'https://quarch.ai/',
+                desc: 'Full-stack community dataset and parallel LLM testing platform built at Harvard Edge Computing Lab to advance AI reasoning in computer architecture and hardware systems.',
+                type: 'reactor_array',
+                previewImage: './assets/projects/quarch.webp',
+                customTexture: null,
+                previewDataUrl: './assets/projects/quarch.webp'
+            },
+            {
+                id: 'site-builder',
+                order: 5,
+                title: 'AVAYA // SHOW ME SITE BUILDER',
+                tag: 'AI WORKSPACE // 05',
+                url: 'https://demo.showme.avaya.com/site-builder',
+                desc: 'Conversational AI website builder powered by Gemini 3 and WebRTC that generates customized React demo sites and auto-configured AI help desk agents for Avaya Infinity.',
+                type: 'strata_pipes',
+                previewImage: './assets/projects/site-builder.webp',
+                customTexture: null,
+                previewDataUrl: './assets/projects/site-builder.webp'
+            },
+            {
+                id: 'tinytorch',
+                order: 6,
+                title: 'TINYTORCH // ML SYSTEMS',
+                tag: 'OPEN SOURCE // 06',
+                url: 'https://mlsysbook.ai/',
+                desc: 'Global privacy-first community platform and custom CLI (tito) connecting thousands of engineers rebuilding PyTorch from first principles with live benchmarks and cohort tracking.',
+                type: 'silo_matrix',
+                previewImage: './assets/projects/tinytorch.webp',
+                customTexture: null,
+                previewDataUrl: './assets/projects/tinytorch.webp'
+            },
+            {
+                id: 'avatar',
+                order: 7,
+                title: 'K.AI // 3D AI AVATAR',
+                tag: 'WEBGL + LLM // 07',
+                url: 'https://avatar.kaik.space/',
+                desc: 'Interactive 3D AI avatar portfolio built from scratch with Three.js, custom WebGL shaders (ASCII, glitch, engrave), Blender-rigged 3D models, and real-time spoken LLM inference.',
+                type: 'gyro_core',
+                previewImage: './assets/projects/avatar.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/avatar.jpg'
+            },
+            {
+                id: 'kinetic-endeavors',
+                order: 8,
+                title: 'KINETIC ENDEAVORS // 3D RESUME',
+                tag: '3D MACHINE // 08',
+                url: 'https://cre8ture.github.io/resume-builder/',
+                desc: 'Input text or upload a PDF resume, project, or system writeup to instantly compile it into an explorable 3D kinetic assembly and schematic architecture diagram with shareable links.',
+                type: 'escher_stairs',
+                previewImage: './assets/projects/kinetic-endeavors.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/kinetic-endeavors.jpg'
+            },
+            {
+                id: 'project-machine',
+                order: 9,
+                title: 'PROJECT MACHINE // 3D BUILDER',
+                tag: '3D ARCHITECTURE // 09',
+                url: 'https://cre8ture.github.io/proj-machine/',
+                desc: 'Interactive 3D kinetic canvas where you upload a technical spec or PDF to auto-assemble meshing architectural gear mechanisms, x-ray schematics, and shareable 3D systems.',
+                type: 'tunnels_cutaway',
+                previewImage: './assets/projects/project-machine.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/project-machine.jpg'
+            },
+            {
+                id: 'floating-world',
+                order: 10,
+                title: 'FLOATING WORLD // 3D SANCTUARY',
+                tag: 'SPATIAL WORLD // 10',
+                url: 'https://cre8ture.github.io/floating-world/',
+                desc: 'Turn any project spec, pitch, or PDF into an interconnected 3D architectural island sanctuary with interactive landmarks, ribbon conduits, and client-side PDF parsing.',
+                type: 'aqueduct_arches',
+                previewImage: './assets/projects/floating-world.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/floating-world.jpg'
+            },
+            {
+                id: 'dance-journal',
+                order: 11,
+                title: 'DANCE JOURNAL // EMBODIED AI',
+                tag: 'POSE + AUDIO // 11',
+                url: 'https://dance-journal.kaik.space/',
+                desc: 'Embodied AI experiment translating real-time body posture and voice into a generative WebGL canvas and spatial audio instrument using pose estimation.',
+                type: 'gyro_core',
+                previewImage: './assets/projects/dance-journal.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/dance-journal.jpg'
+            },
+            {
+                id: 'p2p-face-track-sound',
+                order: 12,
+                title: 'P2P FACE TRACK // AUDIO ROOM',
+                tag: 'EMBODIED P2P // 12',
+                url: '',
+                isPrivate: true,
+                desc: 'Browser-based peer-to-peer audiovisual experiment combining real-time facial landmark tracking, emotion and movement detection, generative audio synthesis, and collaborative P2P audio rooms over a lightweight Node.js server (JavaScript 90.2%, CSS 5%, HTML 4.8% — private repo, no public UI).',
+                type: 'gyro_core',
+                previewImage: './assets/projects/p2p-face-track-sound.png',
+                customTexture: null,
+                previewDataUrl: './assets/projects/p2p-face-track-sound.png'
+            },
+            {
+                id: 'tangle-draw',
+                order: 13,
+                title: 'TANGLE DRAW // AUDIO CANVAS',
+                tag: 'GENERATIVE ART // 13',
+                url: 'https://kai4avaya.github.io/tangle-draw/',
+                desc: 'Canvas-based calligraphic generative art paired with Web Audio API synthesis that tracks and sonifies the geometry of your drawn tangles in real time.',
+                type: 'strata_pipes',
+                previewImage: './assets/projects/tangle-draw.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/tangle-draw.jpg'
+            },
+            {
+                id: 'flowers',
+                order: 14,
+                title: 'FLOWERS // 3D AUDIO SHAPES',
+                tag: 'WEB AUDIO 3D // 14',
+                url: 'https://kai4avaya.github.io/flowers/',
+                desc: 'Interactive Three.js generative music garden where sculptural wireframe blooms respond to touch and motion with resonant Web Audio harmonies.',
+                type: 'aqueduct_arches',
+                previewImage: './assets/projects/flowers.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/flowers.jpg'
+            },
+            {
+                id: 'water-flow',
+                order: 15,
+                title: 'WATER FLOW // MEDITATIVE',
+                tag: 'ENVIRONMENT // 15',
+                url: 'https://kai4avaya.github.io/water-flow/',
+                desc: 'Calming monochromatic paper-shaded river experiment combining procedural linework, animated birds, and generative nature audio.',
+                type: 'tunnels_cutaway',
+                previewImage: './assets/projects/water-flow.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/water-flow.jpg'
+            },
+            {
+                id: 'ball-roll',
+                order: 16,
+                title: 'BALL ROLL // KATAMARI 3D',
+                tag: 'PHYSICS GAME // 16',
+                url: 'https://kai4avaya.github.io/ball-roll/',
+                desc: 'Three.js sketch-style physics game inspired by Katamari Damacy where you gather geometric debris while leaving a sumi-e ink imprint trail.',
+                type: 'reactor_array',
+                previewImage: './assets/projects/ball-roll.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/ball-roll.jpg'
+            },
+            {
+                id: 'factory',
+                order: 17,
+                title: 'FACTORY // CLOCKWORK ASSEMBLY',
+                tag: '3D MOTION // 17',
+                url: 'https://kai4avaya.github.io/factory/',
+                desc: 'Scroll-driven Echochrome-inspired clockwork machine exploring time-scrubbed mechanical assembly and disassembly with Three.js, Anime.js, and Web Audio.',
+                type: 'escher_stairs',
+                previewImage: './assets/projects/factory.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/factory.jpg'
+            },
+            {
+                id: 'ascii-cube',
+                order: 18,
+                title: 'CUBE CUBE HI // ASCII 3D',
+                tag: 'SHADER STUDY // 18',
+                url: 'https://kai4avaya.github.io/cube/',
+                desc: 'Ghostty-inspired real-time dancing 3D ASCII cube streaming high-contrast character shaders that respond dynamically to cursor movement.',
+                type: 'memory_towers',
+                previewImage: './assets/projects/ascii-cube.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/ascii-cube.jpg'
+            }
+        ];
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.style.opacity = '1';
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2400);
+        }
+
+        // --- Load Compressed Portfolio from URL Parameter (?portfolio=...) if present ---
+        function checkUrlForSharedPortfolio() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const encoded = params.get('portfolio');
+                if (!encoded) return;
+
+                const jsonStr = decodeURIComponent(escape(atob(encoded)));
+                const payload = JSON.parse(jsonStr);
+
+                if (payload.identity) {
+                    portfolioIdentity.name = payload.identity.name || portfolioIdentity.name;
+                    portfolioIdentity.subheading = payload.identity.subheading || portfolioIdentity.subheading;
+                    updateIdentityDisplay();
+                }
+
+                if (Array.isArray(payload.projects) && payload.projects.length > 0) {
+                    const stubTypes = ['kai_origami', 'strata_pipes', 'tunnels_cutaway', 'escher_stairs', 'reactor_array', 'memory_towers', 'aqueduct_arches', 'gyro_core', 'silo_matrix'];
+                    portfolioProjects = payload.projects.map((p, idx) => ({
+                        id: p.id || ('proj-' + idx),
+                        order: Number(p.order) || (idx + 1),
+                        title: p.title || 'UNTITLED SYSTEM',
+                        tag: p.tag || '3D SCHEMATIC',
+                        url: p.url || '#',
+                        desc: p.desc || 'Procedural 3D schematic representation.',
+                        type: stubTypes.includes(p.type) ? p.type : stubTypes[idx % stubTypes.length],
+                        previewImage: p.previewImage || null,
+                        previewVideo: p.previewVideo || null,
+                        isPrivate: !!p.isPrivate,
+                        customTexture: null,
+                        previewDataUrl: p.previewImage || null
+                    }));
+                    showToast('SHARED PORTFOLIO LOADED VIA URL');
+                }
+            } catch (err) {
+                console.warn('Could not parse shared portfolio URL parameter:', err);
+            }
+        }
+
+        function updateIdentityDisplay() {
+            const nameStr = (portfolioIdentity.name || 'KAI KLEINBARD').toUpperCase();
+            const subStr = (portfolioIdentity.subheading || 'ARCHITECTURAL AI SYSTEMS // SPATIAL INTERFACES').toUpperCase();
+            document.getElementById('display-creator-name').textContent = nameStr;
+            document.getElementById('display-creator-sub').textContent = subStr;
+            document.getElementById('display-mirror-name').textContent = nameStr;
+            document.getElementById('display-mirror-sub').textContent = subStr;
+        }
+
+        function setMainHeaderVisibility(visible) {
+            isMainHeaderVisible = visible;
+            const topHeader = document.getElementById('top-brutalist-header');
+            if (!topHeader) return;
+            topHeader.style.opacity = visible ? '1' : '0';
+            topHeader.style.transform = visible ? 'translateY(0px)' : 'translateY(-16px)';
+        }
+
+        // Compute 3D camera target along the Escher honeycomb spine for a given scrollT [0..1]
+        function getScrollSpineTarget(scrollT) {
+            const cubeSize = 4.8;
+            let maxLevel = 7;
+            if (cubeNodes.length > 0) {
+                const minY = Math.min(...cubeNodes.map(cn => cn.targetPos.y));
+                maxLevel = Math.max(2, -minY / cubeSize);
+            }
+            // Start slightly above Cube #01 (negative level) so the top cube sits well below the top brutalist header
+            const startLevel = -0.36;
+            const endLevel = Math.max(startLevel, maxLevel - 0.45);
+            const level = startLevel + (endLevel - startLevel) * scrollT;
+
+            return new THREE.Vector3(
+                -0.5 * level * cubeSize,
+                -1.0 * level * cubeSize,
+                0.5 * level * cubeSize
+            );
+        }
+
+        // Compute exact world-space camera lookAt target so the active dual-cube sits centered in the unobstructed left half
+        function getLeftShowcaseCameraTarget(cubeLocalPos, zoomLevel) {
+            const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+            const frustumSize = camera ? camera.userData.frustumSize : 26;
+            const visibleWidth = (frustumSize * aspect) / zoomLevel;
+            const visibleHeight = frustumSize / zoomLevel;
+
+            // Camera basis vectors in world space from targetRotation & roll
+            const rotX = targetRotation.x;
+            const rotY = targetRotation.y;
+            const roll = targetCameraRoll;
+
+            const eyeDir = new THREE.Vector3(
+                Math.sin(rotY) * Math.cos(rotX),
+                Math.sin(rotX),
+                Math.cos(rotY) * Math.cos(rotX)
+            ).normalize();
+            const forward = eyeDir.clone().negate();
+            const upVec = new THREE.Vector3(Math.sin(roll), Math.cos(roll), 0).normalize();
+            const camRight = new THREE.Vector3().crossVectors(forward, upVec).normalize();
+            const camUp = new THREE.Vector3().crossVectors(camRight, forward).normalize();
+
+            const cubeWorldPos = new THREE.Vector3(
+                cubeLocalPos.x * targetScaleX,
+                cubeLocalPos.y,
+                cubeLocalPos.z
+            );
+
+            const isMobile = window.innerWidth < 768;
+            // Shift camera lookAt to the right along camRight so the cube renders at ~28% from the left screen edge,
+            // completely clear of the right-side dossier panel (which occupies the right 44%-46% of the viewport)
+            const rightShiftUnits = isMobile ? 0 : visibleWidth * 0.225;
+            // Shift camera lookAt slightly down along camUp so both the upper 3D cube and lower unfolded sub-cube are vertically centered
+            const downShiftUnits = -visibleHeight * 0.09;
+
+            return cubeWorldPos
+                .addScaledVector(camRight, rightShiftUnits)
+                .addScaledVector(camUp, downShiftUnits);
+        }
+
+        // --- Position Top Header, Bottom Mirrored Header & Settings Panel on Invert or Flip L/R ---
+        function applyHeaderAndHudFlipTransforms() {
+            const topHeader = document.getElementById('top-brutalist-header');
+            const subRow = document.getElementById('display-sub-row');
+            const titleEl = document.getElementById('display-creator-name');
+            const settingsPanel = document.getElementById('settings-panel-wrapper');
+            const bottomMirrorEl = document.getElementById('bottom-mirrored-header');
+
+            if (isInvertedWorld) {
+                topHeader.insertBefore(subRow, titleEl);
+                subRow.classList.remove('mt-2.5');
+                subRow.classList.add('mb-2.5');
+            } else {
+                topHeader.appendChild(subRow);
+                subRow.classList.remove('mb-2.5');
+                subRow.classList.add('mt-2.5');
+            }
+
+            if (isMirroredLR) {
+                topHeader.style.left = 'auto';
+                topHeader.style.right = '1.75rem';
+                topHeader.style.textAlign = 'right';
+                subRow.classList.add('justify-end');
+
+                // Mirror header goes to the opposite side at the very bottom (bottom-left)
+                bottomMirrorEl.style.right = 'auto';
+                bottomMirrorEl.style.left = '1.75rem';
+            } else {
+                topHeader.style.right = 'auto';
+                topHeader.style.left = '1.75rem';
+                topHeader.style.textAlign = 'left';
+                subRow.classList.remove('justify-end');
+
+                // Mirror header sits on opposite side at the very bottom (bottom-right)
+                bottomMirrorEl.style.left = 'auto';
+                bottomMirrorEl.style.right = '1.75rem';
+            }
+            topHeader.style.top = '1.75rem';
+            topHeader.style.bottom = 'auto';
+            topHeader.style.opacity = isMainHeaderVisible ? '1' : '0';
+            topHeader.style.transform = isMainHeaderVisible ? 'translateY(0px)' : 'translateY(-16px)';
+
+            if (isInvertedWorld) {
+                settingsPanel.style.top = 'auto';
+                settingsPanel.style.bottom = '1.75rem';
+            } else {
+                settingsPanel.style.bottom = 'auto';
+                settingsPanel.style.top = '1.75rem';
+            }
+
+            if (isMirroredLR) {
+                settingsPanel.style.right = 'auto';
+                settingsPanel.style.left = '1.75rem';
+            } else {
+                settingsPanel.style.left = 'auto';
+                settingsPanel.style.right = '1.75rem';
+            }
+            settingsPanel.style.transform = 'none';
+        }
+
+        // --- Generate High-Resolution Procedural 2D Screenshot & Raw Preview DataURL for Each Project ---
+        function createProjectScreenshotTexture(project) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 640;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#0a0a0c';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Top ticker bar
+            ctx.fillStyle = '#52525b';
+            ctx.font = '600 11px "JetBrains Mono", monospace';
+            ctx.fillText(`IN-BETWEEN // ${project.title} // ${project.tag} // KAI KLEINBARD`, 24, 24);
+
+            ctx.strokeStyle = '#27272a';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, 38);
+            ctx.lineTo(canvas.width, 38);
+            ctx.moveTo(0, 84);
+            ctx.lineTo(canvas.width, 84);
+            ctx.stroke();
+
+            // Navigation Pill & Header
+            ctx.strokeStyle = '#27272a';
+            ctx.strokeRect(28, 48, 110, 26);
+            ctx.fillStyle = '#71717a';
+            ctx.font = '500 11px "JetBrains Mono", monospace';
+            ctx.fillText('⟳ RESET GRID', 42, 65);
+
+            ctx.fillStyle = '#f4f4f5';
+            ctx.font = '700 12px "JetBrains Mono", monospace';
+            ctx.fillText('[ HOME  grid ]     EXPERIMENTS     ABOUT', 350, 65);
+
+            ctx.strokeStyle = '#3f3f46';
+            ctx.strokeRect(890, 48, 84, 26);
+            ctx.fillStyle = '#f4f4f5';
+            ctx.fillText('✦ K.AI', 912, 65);
+
+            // Matrix Grid Background
+            const cols = 8, rows = 4;
+            const startX = 160, startY = 135;
+            const cellW = 95, cellH = 95;
+
+            ctx.strokeStyle = '#1f1f23';
+            ctx.lineWidth = 1.2;
+            for (let r = 0; r <= rows; r++) {
+                ctx.beginPath();
+                ctx.moveTo(startX, startY + r * cellH);
+                ctx.lineTo(startX + cols * cellW, startY + r * cellH);
+                ctx.stroke();
+            }
+            for (let c = 0; c <= cols; c++) {
+                ctx.beginPath();
+                ctx.moveTo(startX + c * cellW, startY);
+                ctx.lineTo(startX + c * cellW, startY + rows * cellH);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#3f3f46';
+            for (let r = 0; r <= rows; r++) {
+                for (let c = 0; c <= cols; c++) {
+                    ctx.fillRect(startX + c * cellW - 4, startY + r * cellH - 4, 8, 8);
+                }
+            }
+
+            // Unique Graphic per Project Type
+            if (project.type === 'kai_origami') {
+                const bx = 790, by = 320, s = 1.15;
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.moveTo(bx - 120*s, by + 130*s);
+                ctx.lineTo(bx + 15*s, by - 10*s);
+                ctx.lineTo(bx - 25*s, by + 55*s);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.moveTo(bx - 25*s, by + 55*s);
+                ctx.lineTo(bx + 55*s, by - 65*s);
+                ctx.lineTo(bx + 70*s, by - 5*s);
+                ctx.lineTo(bx + 45*s, by + 115*s);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#b91c1c';
+                ctx.beginPath();
+                ctx.moveTo(bx - 10*s, by + 65*s);
+                ctx.lineTo(bx + 20*s, by + 85*s);
+                ctx.lineTo(bx - 15*s, by + 135*s);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#f87171';
+                ctx.beginPath();
+                ctx.moveTo(bx + 55*s, by - 65*s);
+                ctx.lineTo(bx + 75*s, by - 95*s);
+                ctx.lineTo(bx + 70*s, by - 5*s);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.moveTo(bx + 75*s, by - 95*s);
+                ctx.lineTo(bx + 135*s, by - 60*s);
+                ctx.lineTo(bx + 70*s, by - 55*s);
+                ctx.closePath();
+                ctx.fill();
+            } else {
+                ctx.strokeStyle = '#2563eb';
+                ctx.lineWidth = 2.5;
+                ctx.strokeRect(560, 175, 290, 220);
+
+                ctx.fillStyle = 'rgba(37, 99, 235, 0.18)';
+                ctx.fillRect(590, 205, 230, 160);
+
+                ctx.fillStyle = '#f4f4f5';
+                ctx.font = '700 20px "JetBrains Mono", monospace';
+                ctx.fillText(project.title, 200, 260);
+                ctx.fillStyle = '#a1a1aa';
+                ctx.font = '400 13px "JetBrains Mono", monospace';
+                ctx.fillText(project.desc.slice(0, 58) + '...', 200, 295);
+            }
+
+            // Bottom Footer Bar
+            ctx.strokeStyle = '#27272a';
+            ctx.beginPath();
+            ctx.moveTo(30, 550);
+            ctx.lineTo(canvas.width - 30, 550);
+            ctx.stroke();
+
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '600 11px "JetBrains Mono", monospace';
+            ctx.fillText(`▣  ${project.title} // LIVE INTERFACE`, 45, 585);
+            ctx.fillText('in LINKEDIN     ⌘ GITHUB', 820, 585);
+
+            if (!project.previewImage && !project.previewDataUrl) {
+                project.previewDataUrl = canvas.toDataURL('image/png');
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            texture.needsUpdate = true;
+            return texture;
+        }
+
+        const sharedTextureLoader = new THREE.TextureLoader();
+        sharedTextureLoader.setCrossOrigin('anonymous');
+
+        function resolveProjectTexture(proj, onImageLoaded) {
+            if (proj.customTexture) return proj.customTexture;
+            if (proj.loadedImageTexture) return proj.loadedImageTexture;
+            const fallbackTex = createProjectScreenshotTexture(proj);
+            if (proj.previewImage) {
+                proj.previewDataUrl = proj.previewImage;
+                sharedTextureLoader.load(
+                    proj.previewImage,
+                    (imgTex) => {
+                        imgTex.generateMipmaps = true;
+                        imgTex.minFilter = THREE.LinearMipmapLinearFilter;
+                        imgTex.magFilter = THREE.LinearFilter;
+                        imgTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                        imgTex.needsUpdate = true;
+                        proj.loadedImageTexture = imgTex;
+                        if (typeof onImageLoaded === 'function') onImageLoaded(imgTex);
+                    },
+                    undefined,
+                    () => {
+                        // Keep crisp procedural fallback if image fails to load
+                    }
+                );
+            }
+            return fallbackTex;
+        }
+
+        // --- Real Image-to-3D Multi-Stratum Architectural Diorama Engine ---
+        // Analyzes each screenshot's actual pixels (bilinear border background subtraction,
+        // Sobel edges, saturation salience & soft morphological sculpting) and converts the
+        // image into a crisp, realistic 3-stratum 3D architectural diorama:
+        //   - Base Stratum: Pristine screenshot with subtle sculptural relief on a solid plinth slab
+        //   - Mid Stratum (Core): Alpha-extracted foreground objects lifted in 3D with solid backing & contour
+        //   - Top Stratum (Canopy): Highest-salience hero focal elements floating in 3D with vertical risers
+        function extractImage3DData(imageEl) {
+            const W = 64;
+            const H = 44;
+            const off = document.createElement('canvas');
+            off.width = W;
+            off.height = H;
+            const ctx = off.getContext('2d', { willReadFrequently: true });
+            ctx.drawImage(imageEl, 0, 0, W, H);
+
+            let pixels;
+            try {
+                pixels = ctx.getImageData(0, 0, W, H).data;
+            } catch (err) {
+                return null;
+            }
+
+            const n = W * H;
+            const rArr = new Float32Array(n);
+            const gArr = new Float32Array(n);
+            const bArr = new Float32Array(n);
+            const lumArr = new Float32Array(n);
+            const satArr = new Float32Array(n);
+
+            for (let i = 0; i < n; i++) {
+                const p = i * 4;
+                const r = pixels[p] / 255;
+                const g = pixels[p + 1] / 255;
+                const b = pixels[p + 2] / 255;
+                rArr[i] = r;
+                gArr[i] = g;
+                bArr[i] = b;
+                lumArr[i] = 0.299 * r + 0.587 * g + 0.114 * b;
+                const mx = Math.max(r, g, b);
+                const mn = Math.min(r, g, b);
+                satArr[i] = mx > 0.001 ? (mx - mn) / mx : 0;
+            }
+
+            // Bilinear border-strip background estimation (handles solid light/dark UIs AND sky gradients)
+            const avgStrip = (indices) => {
+                let sr = 0, sg = 0, sb = 0;
+                for (let k = 0; k < indices.length; k++) {
+                    const idx = indices[k];
+                    sr += rArr[idx]; sg += gArr[idx]; sb += bArr[idx];
+                }
+                const c = Math.max(1, indices.length);
+                return [sr / c, sg / c, sb / c];
+            };
+            const topIdx = [], botIdx = [], leftIdx = [], rightIdx = [];
+            for (let x = 0; x < W; x++) {
+                topIdx.push(x, W + x);
+                botIdx.push((H - 1) * W + x, (H - 2) * W + x);
+            }
+            for (let y = 0; y < H; y++) {
+                leftIdx.push(y * W, y * W + 1);
+                rightIdx.push(y * W + (W - 1), y * W + (W - 2));
+            }
+            const bgTop = avgStrip(topIdx);
+            const bgBot = avgStrip(botIdx);
+            const bgLeft = avgStrip(leftIdx);
+            const bgRight = avgStrip(rightIdx);
+            const bgLum = 0.299 * ((bgTop[0] + bgBot[0] + bgLeft[0] + bgRight[0]) / 4)
+                        + 0.587 * ((bgTop[1] + bgBot[1] + bgLeft[1] + bgRight[1]) / 4)
+                        + 0.114 * ((bgTop[2] + bgBot[2] + bgLeft[2] + bgRight[2]) / 4);
+
+            // Multi-cue salience map with gentle center compositional priority (keeps nav chrome grounded)
+            const rawH = new Float32Array(n);
+            for (let y = 0; y < H; y++) {
+                const v = y / (H - 1);
+                for (let x = 0; x < W; x++) {
+                    const u = x / (W - 1);
+                    const i = y * W + x;
+
+                    const vr = (1 - v) * bgTop[0] + v * bgBot[0];
+                    const vg = (1 - v) * bgTop[1] + v * bgBot[1];
+                    const vb = (1 - v) * bgTop[2] + v * bgBot[2];
+                    const hr = (1 - u) * bgLeft[0] + u * bgRight[0];
+                    const hg = (1 - u) * bgLeft[1] + u * bgRight[1];
+                    const hb = (1 - u) * bgLeft[2] + u * bgRight[2];
+                    const bgr = 0.58 * vr + 0.42 * hr;
+                    const bgg = 0.58 * vg + 0.42 * hg;
+                    const bgb = 0.58 * vb + 0.42 * hb;
+
+                    const dr = rArr[i] - bgr;
+                    const dg = gArr[i] - bgg;
+                    const db = bArr[i] - bgb;
+                    const colorDist = Math.sqrt(dr * dr + dg * dg + db * db) / 1.732;
+
+                    const xm = Math.max(0, x - 1), xp = Math.min(W - 1, x + 1);
+                    const ym = Math.max(0, y - 1), yp = Math.min(H - 1, y + 1);
+                    const tl = lumArr[ym * W + xm], tc = lumArr[ym * W + x], tr = lumArr[ym * W + xp];
+                    const ml = lumArr[y * W + xm],                           mr = lumArr[y * W + xp];
+                    const bl = lumArr[yp * W + xm], bc = lumArr[yp * W + x], br = lumArr[yp * W + xp];
+                    const gx = -tl - 2 * ml - bl + tr + 2 * mr + br;
+                    const gy = -tl - 2 * tc - tr + bl + 2 * bc + br;
+                    const edge = Math.min(1, Math.sqrt(gx * gx + gy * gy) * 0.65);
+
+                    const satBoost = satArr[i] * Math.min(1, colorDist * 2.2 + 0.2);
+                    let sal = Math.min(1, colorDist * 1.25 + edge * 0.48 + satBoost * 0.35);
+                    sal = sal < 0.08 ? 0 : (sal - 0.08) / 0.92;
+
+                    // Gentle radial composition weighting so hero subjects rise above top/bottom nav bars
+                    const dx = (u - 0.5) * 1.6;
+                    const dy = (v - 0.52) * 1.85;
+                    const radial = Math.max(0, 1 - Math.sqrt(dx * dx + dy * dy));
+                    const compWeight = 0.62 + 0.38 * radial;
+                    rawH[i] = sal * compWeight;
+                }
+            }
+
+            // Soft dilation + 1-pass Gaussian to keep thin strokes crisp while forming coherent cutout islands
+            const dilH = new Float32Array(n);
+            for (let y = 0; y < H; y++) {
+                for (let x = 0; x < W; x++) {
+                    let mx = 0;
+                    for (let dy = -1; dy <= 1; dy++) {
+                        const yy = Math.max(0, Math.min(H - 1, y + dy));
+                        for (let dx = -1; dx <= 1; dx++) {
+                            const xx = Math.max(0, Math.min(W - 1, x + dx));
+                            const val = rawH[yy * W + xx];
+                            if (val > mx) mx = val;
+                        }
+                    }
+                    const i = y * W + x;
+                    dilH[i] = 0.62 * mx + 0.38 * rawH[i];
+                }
+            }
+
+            const blurOnce = (src) => {
+                const dst = new Float32Array(n);
+                for (let y = 0; y < H; y++) {
+                    const ym = Math.max(0, y - 1), yp = Math.min(H - 1, y + 1);
+                    for (let x = 0; x < W; x++) {
+                        const xm = Math.max(0, x - 1), xp = Math.min(W - 1, x + 1);
+                        dst[y * W + x] = (
+                            src[ym * W + xm] + 2 * src[ym * W + x] + src[ym * W + xp] +
+                            2 * src[y * W + xm] + 4 * src[y * W + x] + 2 * src[y * W + xp] +
+                            src[yp * W + xm] + 2 * src[yp * W + x] + src[yp * W + xp]
+                        ) / 16;
+                    }
+                }
+                return dst;
+            };
+            const heights = blurOnce(dilH);
+
+            // Normalize using 95th percentile
+            const sorted = Array.from(heights).sort((a, b) => a - b);
+            const p95 = Math.max(0.16, sorted[Math.floor(sorted.length * 0.95)] || 0.5);
+            for (let y = 0; y < H; y++) {
+                for (let x = 0; x < W; x++) {
+                    const i = y * W + x;
+                    const edgeDist = Math.min(x, W - 1 - x, y, H - 1 - y);
+                    const edgeMask = Math.min(1, edgeDist / 1.8);
+                    heights[i] = Math.min(1, heights[i] / p95) * edgeMask;
+                }
+            }
+
+            // Build crisp alpha-masked foreground cutout textures for Mid Stratum & Top Hero Stratum
+            const buildCutoutTexture = (threshold, feather) => {
+                const CW = 384;
+                const CH = Math.round(CW / Math.max(0.65, Math.min(2.0, (imageEl.naturalWidth || 16) / (imageEl.naturalHeight || 10))));
+                const c = document.createElement('canvas');
+                c.width = CW;
+                c.height = CH;
+                const cctx = c.getContext('2d', { willReadFrequently: true });
+                cctx.drawImage(imageEl, 0, 0, CW, CH);
+                const imgData = cctx.getImageData(0, 0, CW, CH);
+                const d = imgData.data;
+
+                for (let py = 0; py < CH; py++) {
+                    const fy = (py / (CH - 1)) * (H - 1);
+                    const y0 = Math.floor(fy), y1 = Math.min(H - 1, y0 + 1);
+                    const wy = fy - y0;
+                    for (let px = 0; px < CW; px++) {
+                        const fx = (px / (CW - 1)) * (W - 1);
+                        const x0 = Math.floor(fx), x1 = Math.min(W - 1, x0 + 1);
+                        const wx = fx - x0;
+
+                        // Bilinear sample salience height
+                        const h00 = heights[y0 * W + x0], h10 = heights[y0 * W + x1];
+                        const h01 = heights[y1 * W + x0], h11 = heights[y1 * W + x1];
+                        const hVal = (h00 * (1 - wx) + h10 * wx) * (1 - wy) + (h01 * (1 - wx) + h11 * wx) * wy;
+
+                        // Crisp smoothstep alpha mask
+                        let alpha = (hVal - threshold) / feather;
+                        alpha = Math.max(0, Math.min(1, alpha));
+                        alpha = alpha * alpha * (3 - 2 * alpha);
+                        d[(py * CW + px) * 4 + 3] = Math.round(alpha * 255);
+                    }
+                }
+                cctx.putImageData(imgData, 0, 0);
+                const tex = new THREE.CanvasTexture(c);
+                tex.generateMipmaps = true;
+                tex.minFilter = THREE.LinearMipmapLinearFilter;
+                tex.magFilter = THREE.LinearFilter;
+                tex.anisotropy = renderer ? renderer.capabilities.getMaxAnisotropy() : 4;
+                tex.needsUpdate = true;
+                return tex;
+            };
+
+            const midCutoutTex = buildCutoutTexture(0.24, 0.14);
+            const heroCutoutTex = buildCutoutTexture(0.54, 0.14);
+
+            // Detect top 6 spatially separated salient visual peaks for crisp vertical architectural risers
+            const candidates = [];
+            for (let y = 4; y < H - 4; y++) {
+                for (let x = 4; x < W - 4; x++) {
+                    const i = y * W + x;
+                    const v = heights[i];
+                    if (v < 0.48) continue;
+                    if (
+                        v >= heights[i - 1] && v >= heights[i + 1] &&
+                        v >= heights[i - W] && v >= heights[i + W]
+                    ) {
+                        candidates.push({ x, y, h: v, r: rArr[i], g: gArr[i], b: bArr[i] });
+                    }
+                }
+            }
+            candidates.sort((a, b) => b.h - a.h);
+            const peaks = [];
+            for (const c of candidates) {
+                if (peaks.length >= 6) break;
+                if (!peaks.some(p => Math.hypot(p.x - c.x, p.y - c.y) < 10)) peaks.push(c);
+            }
+
+            const aspect = (imageEl.naturalWidth && imageEl.naturalHeight)
+                ? Math.max(0.65, Math.min(2.0, imageEl.naturalWidth / imageEl.naturalHeight))
+                : 16 / 10;
+
+            return { W, H, heights, peaks, bgLum, aspect, midCutoutTex, heroCutoutTex };
+        }
+
+        // Marching-squares silhouette contour extractor at exact floating stratum elevations
+        function buildStratumContourGeometry(data, plateW, plateD, contourSpecs) {
+            const { W, H, heights } = data;
+            const pts = [];
+            const toX = (gx) => (gx / (W - 1) - 0.5) * plateW;
+            const toZ = (gy) => (gy / (H - 1) - 0.5) * plateD;
+
+            contourSpecs.forEach(({ threshold, yElev }) => {
+                for (let y = 0; y < H - 1; y++) {
+                    for (let x = 0; x < W - 1; x++) {
+                        const v0 = heights[y * W + x];
+                        const v1 = heights[y * W + (x + 1)];
+                        const v2 = heights[(y + 1) * W + (x + 1)];
+                        const v3 = heights[(y + 1) * W + x];
+
+                        const segPts = [];
+                        const interp = (a, b, ax, ay, bx, by) => {
+                            if ((a < threshold) !== (b < threshold)) {
+                                const t = (threshold - a) / ((b - a) || 1e-5);
+                                segPts.push([ax + (bx - ax) * t, ay + (by - ay) * t]);
+                            }
+                        };
+                        interp(v0, v1, x, y, x + 1, y);
+                        interp(v1, v2, x + 1, y, x + 1, y + 1);
+                        interp(v2, v3, x + 1, y + 1, x, y + 1);
+                        interp(v3, v0, x, y + 1, x, y);
+
+                        if (segPts.length === 2) {
+                            pts.push(
+                                toX(segPts[0][0]), yElev, toZ(segPts[0][1]),
+                                toX(segPts[1][0]), yElev, toZ(segPts[1][1])
+                            );
+                        } else if (segPts.length === 4) {
+                            pts.push(
+                                toX(segPts[0][0]), yElev, toZ(segPts[0][1]),
+                                toX(segPts[1][0]), yElev, toZ(segPts[1][1]),
+                                toX(segPts[2][0]), yElev, toZ(segPts[2][1]),
+                                toX(segPts[3][0]), yElev, toZ(segPts[3][1])
+                            );
+                        }
+                    }
+                }
+            });
+
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+            return geo;
+        }
+
+        // Build the Laser-Cut 3-Stratum Image-to-3D Architectural Diorama inside each cube
+        function buildImage3DDiorama(proj, texture, cubeSize, edgeHex) {
+            const img = texture && texture.image;
+            if (!img) return null;
+
+            if (!proj._image3DData) {
+                proj._image3DData = extractImage3DData(img);
+            }
+            const data = proj._image3DData;
+            if (!data) return null;
+
+            const group = new THREE.Group();
+            const fadeMaterials = [];
+            const half = cubeSize / 2;
+
+            // Aspect-ratio accurate architectural plate fitted cleanly inside the cube
+            const maxSpan = cubeSize * 0.88;
+            const plateW = data.aspect >= 1 ? maxSpan : maxSpan * data.aspect;
+            const plateD = data.aspect >= 1 ? maxSpan / data.aspect : maxSpan;
+            const baseY = -cubeSize * 0.25;
+            const midY = baseY + 0.42;
+            const heroY = baseY + 0.84;
+            const isDarkImg = data.bgLum < 0.35;
+
+            // 1. Solid Physical Architectural Plinth Slab (from 3d_monochromatic_architectural_schematic.html)
+            const slabThick = 0.22;
+            const slabGeo = new THREE.BoxGeometry(plateW, slabThick, plateD);
+            const slabMat = new THREE.MeshLambertMaterial({
+                color: isDarkImg ? 0x141418 : (isObsidianScheme ? 0x262933 : 0xd9d5cc),
+                transparent: true,
+                opacity: 0.96
+            });
+            slabMat.userData = { baseOpacity: 0.96 };
+            fadeMaterials.push(slabMat);
+            const slabMesh = new THREE.Mesh(slabGeo, slabMat);
+            slabMesh.position.y = baseY - slabThick / 2 - 0.01;
+            group.add(slabMesh);
+
+            const slabEdgeMat = new THREE.LineBasicMaterial({
+                color: isDarkImg ? 0x60a5fa : edgeHex,
+                transparent: true,
+                opacity: 0.65
+            });
+            slabEdgeMat.userData = { baseOpacity: 0.65 };
+            fadeMaterials.push(slabEdgeMat);
+            slabMesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(slabGeo), slabEdgeMat));
+
+            // 2. Vertical Corner Anchor Drop-Lines from Plinth Slab to Cube Floor
+            const dropPts = [];
+            const bottomCubeY = -half + 0.04;
+            const slabBottomY = baseY - slabThick - 0.01;
+            [
+                [-plateW / 2, -plateD / 2],
+                [ plateW / 2, -plateD / 2],
+                [-plateW / 2,  plateD / 2],
+                [ plateW / 2,  plateD / 2]
+            ].forEach(([cx, cz]) => {
+                dropPts.push(new THREE.Vector3(cx, slabBottomY, cz), new THREE.Vector3(cx, bottomCubeY, cz));
+            });
+            const dropMat = new THREE.LineBasicMaterial({
+                color: edgeHex,
+                transparent: true,
+                opacity: 0.45
+            });
+            dropMat.userData = { baseOpacity: 0.45 };
+            fadeMaterials.push(dropMat);
+            group.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dropPts), dropMat));
+
+            // 3. Base Stratum: Pristine Full Screenshot with Subtle Sculptural Bas-Relief (Zero Stretching!)
+            const subtleRelief = 0.20;
+            const baseGeo = new THREE.PlaneGeometry(plateW, plateD, data.W - 1, data.H - 1);
+            baseGeo.rotateX(-Math.PI / 2);
+            const posAttr = baseGeo.attributes.position;
+            for (let y = 0; y < data.H; y++) {
+                for (let x = 0; x < data.W; x++) {
+                    const idx = y * data.W + x;
+                    posAttr.setY(idx, data.heights[idx] * subtleRelief);
+                }
+            }
+            posAttr.needsUpdate = true;
+            baseGeo.computeVertexNormals();
+
+            const baseMat = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                opacity: 0.96,
+                side: THREE.DoubleSide
+            });
+            baseMat.userData = { baseOpacity: 0.96 };
+            fadeMaterials.push(baseMat);
+            const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+            baseMesh.position.y = baseY;
+            group.add(baseMesh);
+
+            // Helper to add a crisp floating alpha-cutout stratum with physical 3D extruded thickness + drop shadow
+            const addFloatingStratum = (cutoutTex, yElev, thickness, shadowOpacity) => {
+                const planeGeo = new THREE.PlaneGeometry(plateW, plateD);
+                planeGeo.rotateX(-Math.PI / 2);
+
+                // Subtle architectural cast shadow projected slightly below the floating stratum
+                const shadowMat = new THREE.MeshBasicMaterial({
+                    map: cutoutTex,
+                    color: 0x090b10,
+                    transparent: true,
+                    opacity: shadowOpacity,
+                    depthWrite: false,
+                    side: THREE.DoubleSide
+                });
+                shadowMat.userData = { baseOpacity: shadowOpacity };
+                fadeMaterials.push(shadowMat);
+                const shadowMesh = new THREE.Mesh(planeGeo, shadowMat);
+                shadowMesh.position.set(0.05, yElev - thickness - 0.14, 0.05);
+                group.add(shadowMesh);
+
+                // Extruded solid 3D slab thickness stack (gives real architectural edge thickness when rotated!)
+                const sliceCount = 3;
+                for (let s = 0; s < sliceCount; s++) {
+                    const tFrac = (s + 1) / (sliceCount + 1);
+                    const backMat = new THREE.MeshBasicMaterial({
+                        map: cutoutTex,
+                        color: isDarkImg ? 0x3b82f6 : 0x334155,
+                        transparent: true,
+                        opacity: 0.68,
+                        alphaTest: 0.25,
+                        side: THREE.DoubleSide
+                    });
+                    backMat.userData = { baseOpacity: 0.68 };
+                    fadeMaterials.push(backMat);
+                    const backMesh = new THREE.Mesh(planeGeo, backMat);
+                    backMesh.position.y = yElev - thickness * tFrac;
+                    group.add(backMesh);
+                }
+
+                // Pristine top-face real-color image cutout
+                const topMat = new THREE.MeshBasicMaterial({
+                    map: cutoutTex,
+                    transparent: true,
+                    opacity: 0.99,
+                    alphaTest: 0.18,
+                    side: THREE.DoubleSide
+                });
+                topMat.userData = { baseOpacity: 0.99 };
+                fadeMaterials.push(topMat);
+                const topMesh = new THREE.Mesh(planeGeo, topMat);
+                topMesh.position.y = yElev;
+                group.add(topMesh);
+            };
+
+            // 4. Mid Stratum (Core Foreground Objects Lifted in 3D)
+            addFloatingStratum(data.midCutoutTex, midY, 0.08, isDarkImg ? 0.14 : 0.22);
+
+            // 5. Top Stratum (Hero Focal Subject Floating Above Mid Stratum)
+            addFloatingStratum(data.heroCutoutTex, heroY, 0.08, isDarkImg ? 0.16 : 0.20);
+
+            // 6. Crisp Marching-Squares Blueprint Contours Hugging the Exact Cutout Silhouettes
+            const contourGeo = buildStratumContourGeometry(data, plateW, plateD, [
+                { threshold: 0.30, yElev: midY + 0.015 },
+                { threshold: 0.60, yElev: heroY + 0.018 }
+            ]);
+            const contourMat = new THREE.LineBasicMaterial({
+                color: isDarkImg ? 0x60a5fa : (isObsidianScheme ? 0x93c5fd : 0x1d4ed8),
+                transparent: true,
+                opacity: isDarkImg ? 0.62 : 0.48
+            });
+            contourMat.userData = { baseOpacity: isDarkImg ? 0.62 : 0.48 };
+            fadeMaterials.push(contourMat);
+            group.add(new THREE.LineSegments(contourGeo, contourMat));
+
+            // 7. Vertical Architectural Stratum Risers Connecting Base -> Mid -> Hero Peaks
+            if (data.peaks.length > 0) {
+                const riserPts = [];
+                const capGeo = new THREE.BoxGeometry(0.10, 0.04, 0.10);
+                data.peaks.forEach((pk) => {
+                    const wx = (pk.x / (data.W - 1) - 0.5) * plateW;
+                    const wz = (pk.y / (data.H - 1) - 0.5) * plateD;
+                    const topRiserY = (pk.h >= 0.56 ? heroY : midY) + 0.24;
+                    riserPts.push(new THREE.Vector3(wx, baseY, wz), new THREE.Vector3(wx, topRiserY, wz));
+
+                    const capCol = new THREE.Color(pk.r, pk.g, pk.b);
+                    if (isDarkImg && capCol.r + capCol.g + capCol.b < 0.45) capCol.setHex(0x60a5fa);
+                    const capMat = new THREE.MeshBasicMaterial({
+                        color: capCol,
+                        transparent: true,
+                        opacity: 0.90
+                    });
+                    capMat.userData = { baseOpacity: 0.90 };
+                    fadeMaterials.push(capMat);
+                    const capMesh = new THREE.Mesh(capGeo, capMat);
+                    capMesh.position.set(wx, topRiserY + 0.02, wz);
+                    group.add(capMesh);
+                });
+                const riserMat = new THREE.LineBasicMaterial({
+                    color: isDarkImg ? 0x93c5fd : edgeHex,
+                    transparent: true,
+                    opacity: 0.45
+                });
+                riserMat.userData = { baseOpacity: 0.45 };
+                fadeMaterials.push(riserMat);
+                group.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(riserPts), riserMat));
+            }
+
+            return { group, fadeMaterials, aspect: data.aspect };
+        }
+
+        // --- Initialize Three.js Orthographic Escher World ---
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xe6e3dd);
+
+            const frustumSize = 26;
+            const aspect = window.innerWidth / window.innerHeight;
+            camera = new THREE.OrthographicCamera(
+                -frustumSize * aspect / 2,
+                frustumSize * aspect / 2,
+                frustumSize / 2,
+                -frustumSize / 2,
+                -300,
+                600
+            );
+            camera.userData.frustumSize = frustumSize;
+
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                powerPreference: "high-performance",
+                preserveDrawingBuffer: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // Lighting for Monument Valley Isometric Shading
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.82);
+            scene.add(ambientLight);
+
+            const dirLight1 = new THREE.DirectionalLight(0xfffbf0, 0.72);
+            dirLight1.position.set(28, 48, 32);
+            scene.add(dirLight1);
+
+            const dirLight2 = new THREE.DirectionalLight(0x93c5fd, 0.35);
+            dirLight2.position.set(-32, -25, -20);
+            scene.add(dirLight2);
+
+            worldGroup = new THREE.Group();
+            primaryLatticeGroup = new THREE.Group();
+            bridgeLinesGroup = new THREE.Group();
+
+            worldGroup.add(primaryLatticeGroup);
+            worldGroup.add(bridgeLinesGroup);
+            scene.add(worldGroup);
+
+            checkUrlForSharedPortfolio();
+
+            if (IS_STANDALONE_EXPORT) {
+                const createBtnWrap = document.getElementById('create-your-own-container');
+                if (createBtnWrap) createBtnWrap.style.display = 'none';
+            }
+
+            buildEscherPortfolioLattice(false);
+            renderStudioProjectList();
+            setupEventListeners();
+            animate();
+        }
+
+        // --- Construct Architectural 3D Cutaway Interior Inside Each Cube ---
+        function buildCubeInteriorSchematic(project, cubeSize, edgeColorHex) {
+            const group = new THREE.Group();
+            const half = cubeSize / 2;
+
+            const primaryColor = edgeColorHex;
+            const accentColor = project.type === 'kai_origami' ? 0xe11d48 : 0x2563eb;
+            const fillColor = isObsidianScheme ? 0x1e293b : 0xc7d2fe;
+            const slabMat = new THREE.MeshLambertMaterial({
+                color: fillColor,
+                transparent: true,
+                opacity: 0.88
+            });
+            const accentMat = new THREE.MeshLambertMaterial({ color: accentColor });
+
+            const strataGeo = new THREE.BoxGeometry(cubeSize * 0.92, cubeSize * 0.16, cubeSize * 0.92);
+            const strataMesh = new THREE.Mesh(strataGeo, slabMat);
+            strataMesh.position.y = -half + (cubeSize * 0.08);
+            group.add(strataMesh);
+
+            const strataEdges = new THREE.EdgesGeometry(strataGeo);
+            const strataLines = new THREE.LineSegments(strataEdges, new THREE.LineBasicMaterial({
+                color: primaryColor,
+                transparent: true,
+                opacity: 0.45
+            }));
+            strataMesh.add(strataLines);
+
+            const innerGroup = buildProceduralCutawayGeometry(project, primaryColor, accentColor, fillColor, accentMat);
+            innerGroup.position.y = -half + (cubeSize * 0.18);
+            group.add(innerGroup);
+
+            return group;
+        }
+
+        function buildProceduralCutawayGeometry(project, primaryColor, accentColor, fillColor, accentMat) {
+            const group = new THREE.Group();
+
+            if (project.type === 'kai_origami') {
+                const birdMat = new THREE.MeshLambertMaterial({ color: accentColor, flatShading: true });
+                const wingGeo = new THREE.ConeGeometry(0.95, 2.2, 3);
+                const wing = new THREE.Mesh(wingGeo, birdMat);
+                wing.position.set(0.65, 1.0, 0.35);
+                wing.rotation.z = -0.48;
+                wing.rotation.x = 0.25;
+                group.add(wing);
+
+                const wingEdges = new THREE.LineSegments(
+                    new THREE.EdgesGeometry(wingGeo),
+                    new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.65 })
+                );
+                wing.add(wingEdges);
+
+                const nodeGeo = new THREE.BoxGeometry(0.28, 0.55, 0.28);
+                for (let x = -1.4; x <= 1.4; x += 0.9) {
+                    for (let z = -1.1; z <= 1.1; z += 0.9) {
+                        const pillar = new THREE.Mesh(nodeGeo, new THREE.MeshLambertMaterial({ color: primaryColor }));
+                        pillar.position.set(x, 0.28, z);
+                        group.add(pillar);
+                    }
+                }
+            } else if (project.type === 'strata_pipes') {
+                for (let i = 0; i < 3; i++) {
+                    const plateGeo = new THREE.BoxGeometry(2.8 - i * 0.5, 0.22, 2.6 - i * 0.4);
+                    const plate = new THREE.Mesh(plateGeo, new THREE.MeshBasicMaterial({
+                        color: i === 2 ? accentColor : fillColor,
+                        transparent: true,
+                        opacity: 0.85
+                    }));
+                    plate.position.set(-0.2 + i * 0.25, 0.45 + i * 0.65, 0);
+                    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(plateGeo), new THREE.LineBasicMaterial({ color: primaryColor }));
+                    plate.add(edges);
+                    group.add(plate);
+                }
+                const pipeGeo = new THREE.CylinderGeometry(0.18, 0.18, 3.6, 12);
+                const pipe = new THREE.Mesh(pipeGeo, accentMat);
+                pipe.rotation.z = Math.PI / 2;
+                pipe.position.set(0, 0.35, 0.65);
+                group.add(pipe);
+            } else if (project.type === 'escher_stairs') {
+                const steps = 5;
+                for (let s = 0; s < steps; s++) {
+                    const stepGeo = new THREE.BoxGeometry(0.65, 0.35 + s * 0.34, 1.8 - s * 0.2);
+                    const step = new THREE.Mesh(stepGeo, new THREE.MeshBasicMaterial({ color: s === 4 ? accentColor : fillColor }));
+                    step.position.set((s - 2) * 0.52, (0.35 + s * 0.34) / 2, (s - 2) * 0.15);
+                    step.add(new THREE.LineSegments(new THREE.EdgesGeometry(stepGeo), new THREE.LineBasicMaterial({ color: primaryColor })));
+                    group.add(step);
+                }
+            } else if (project.type === 'reactor_array') {
+                const cylGeo = new THREE.CylinderGeometry(0.35, 0.35, 1.65, 14);
+                const offsets = [[-0.9, -0.7], [0.9, -0.7], [-0.9, 0.7], [0.9, 0.7], [0, 0]];
+                offsets.forEach(([ox, oz], idx) => {
+                    const cyl = new THREE.Mesh(cylGeo, new THREE.MeshBasicMaterial({ color: idx === 4 ? accentColor : fillColor }));
+                    cyl.position.set(ox, 0.82, oz);
+                    cyl.add(new THREE.LineSegments(new THREE.EdgesGeometry(cylGeo), new THREE.LineBasicMaterial({ color: primaryColor })));
+                    group.add(cyl);
+                });
+            } else if (project.type === 'aqueduct_arches') {
+                for (let i = -1; i <= 1; i++) {
+                    const pillarGeo = new THREE.BoxGeometry(0.55, 1.95, 0.55);
+                    const pillar = new THREE.Mesh(pillarGeo, new THREE.MeshBasicMaterial({ color: fillColor }));
+                    pillar.position.set(i * 1.15, 0.98, -0.35);
+                    pillar.add(new THREE.LineSegments(new THREE.EdgesGeometry(pillarGeo), new THREE.LineBasicMaterial({ color: primaryColor })));
+                    group.add(pillar);
+                }
+                const deckGeo = new THREE.BoxGeometry(3.2, 0.36, 1.25);
+                const deck = new THREE.Mesh(deckGeo, new THREE.MeshBasicMaterial({ color: accentColor }));
+                deck.position.set(0, 2.05, -0.35);
+                deck.add(new THREE.LineSegments(new THREE.EdgesGeometry(deckGeo), new THREE.LineBasicMaterial({ color: 0xffffff })));
+                group.add(deck);
+            } else if (project.type === 'gyro_core') {
+                const ring1Geo = new THREE.TorusGeometry(1.15, 0.12, 10, 28);
+                const ring1 = new THREE.Mesh(ring1Geo, new THREE.MeshBasicMaterial({ color: fillColor }));
+                ring1.position.set(0, 1.15, 0);
+                ring1.rotation.x = Math.PI / 3;
+                ring1.add(new THREE.LineSegments(new THREE.EdgesGeometry(ring1Geo), new THREE.LineBasicMaterial({ color: primaryColor })));
+                group.add(ring1);
+
+                const coreGeo = new THREE.OctahedronGeometry(0.55, 0);
+                const core = new THREE.Mesh(coreGeo, new THREE.MeshBasicMaterial({ color: accentColor }));
+                core.position.set(0, 1.15, 0);
+                core.add(new THREE.LineSegments(new THREE.EdgesGeometry(coreGeo), new THREE.LineBasicMaterial({ color: 0xffffff })));
+                group.add(core);
+            } else if (project.type === 'silo_matrix') {
+                const siloOffsets = [[-0.85, -0.65], [0.85, -0.65], [0, 0.75]];
+                siloOffsets.forEach(([sx, sz], idx) => {
+                    const cylGeo = new THREE.CylinderGeometry(0.52, 0.52, 1.85, 16);
+                    const cyl = new THREE.Mesh(cylGeo, new THREE.MeshBasicMaterial({ color: idx === 2 ? accentColor : fillColor }));
+                    cyl.position.set(sx, 0.92, sz);
+                    cyl.add(new THREE.LineSegments(new THREE.EdgesGeometry(cylGeo), new THREE.LineBasicMaterial({ color: primaryColor })));
+                    group.add(cyl);
+                });
+            } else {
+                const towerCoords = [[-1.1, -0.8, 1.7], [0.2, -0.9, 1.2], [1.2, 0.7, 2.0], [-0.9, 0.9, 0.95]];
+                towerCoords.forEach(([tx, tz, th], idx) => {
+                    const tGeo = new THREE.BoxGeometry(0.85, th, 0.85);
+                    const tMesh = new THREE.Mesh(tGeo, new THREE.MeshBasicMaterial({ color: idx === 2 ? accentColor : fillColor }));
+                    tMesh.position.set(tx, th / 2, tz);
+                    tMesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(tGeo), new THREE.LineBasicMaterial({ color: primaryColor })));
+                    group.add(tMesh);
+                });
+            }
+
+            return group;
+        }
+
+        // --- Multi-Tone Architectural Wall Palette & Risograph Grain Texture Cache ---
+        let wallGrainTexture = null;
+        function getArchitecturalWallGrainTexture() {
+            if (wallGrainTexture) return wallGrainTexture;
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+
+            // Subtle architectural blueprint paper wash with fine stipple depth
+            const grad = ctx.createLinearGradient(0, 0, 256, 256);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.5, '#dbeafe');
+            grad.addColorStop(1, '#93c5fd');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 256, 256);
+
+            // Fine risograph / etching stipple dots
+            for (let i = 0; i < 4200; i++) {
+                const x = Math.random() * 256;
+                const y = Math.random() * 256;
+                const alpha = Math.random() * 0.16;
+                ctx.fillStyle = `rgba(30, 58, 138, ${alpha})`;
+                ctx.fillRect(x, y, 1.5, 1.5);
+            }
+
+            // Subtle horizontal architectural stratum lines
+            ctx.strokeStyle = 'rgba(29, 78, 216, 0.08)';
+            ctx.lineWidth = 1;
+            for (let y = 16; y < 256; y += 16) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(256, y);
+                ctx.stroke();
+            }
+
+            wallGrainTexture = new THREE.CanvasTexture(canvas);
+            wallGrainTexture.wrapS = THREE.RepeatWrapping;
+            wallGrainTexture.wrapT = THREE.RepeatWrapping;
+            return wallGrainTexture;
+        }
+
+        // Creates 6 distinct face materials for a cube so adjacent walls have contrasting blue tones like the reference poster
+        function createMultiToneCubeWallMaterials(cubeIndex) {
+            const grainTex = getArchitecturalWallGrainTexture();
+
+            // Curated architectural wall contrast presets (Left Wall -Z, Right Wall +X, Floor -Y, Front/Other walls)
+            // Matches the poster where some walls are deep cobalt, some medium ultramarine, and some pale ice/clear
+            const lightSchemes = [
+                // Preset 0: Deep cobalt left wall, pale clear-blue right wall
+                { leftColor: 0x1e40af, leftOp: 0.42, rightColor: 0x93c5fd, rightOp: 0.12, floorColor: 0x1d4ed8, floorOp: 0.24 },
+                // Preset 1: Pale ice left wall, rich ultramarine right wall
+                { leftColor: 0xbfdbfe, leftOp: 0.10, rightColor: 0x1d4ed8, rightOp: 0.38, floorColor: 0x2563eb, floorOp: 0.22 },
+                // Preset 2: Medium blueprint left wall, deep navy right wall
+                { leftColor: 0x3b82f6, leftOp: 0.25, rightColor: 0x1e3a8a, rightOp: 0.46, floorColor: 0x60a5fa, floorOp: 0.16 },
+                // Preset 3: Crisp open alabaster left wall, medium cobalt right wall
+                { leftColor: 0xeff6ff, leftOp: 0.06, rightColor: 0x2563eb, rightOp: 0.30, floorColor: 0x1e40af, floorOp: 0.28 },
+                // Preset 4: Rich indigo left wall, soft periwinkle right wall
+                { leftColor: 0x1d4ed8, leftOp: 0.36, rightColor: 0x60a5fa, rightOp: 0.18, floorColor: 0x1e3a8a, floorOp: 0.32 }
+            ];
+
+            const darkSchemes = [
+                { leftColor: 0x1d4ed8, leftOp: 0.44, rightColor: 0x60a5fa, rightOp: 0.14, floorColor: 0x1e3a8a, floorOp: 0.30 },
+                { leftColor: 0x93c5fd, leftOp: 0.12, rightColor: 0x2563eb, rightOp: 0.40, floorColor: 0x1d4ed8, floorOp: 0.26 },
+                { leftColor: 0x3b82f6, leftOp: 0.28, rightColor: 0x1e40af, rightOp: 0.48, floorColor: 0x3b82f6, floorOp: 0.18 },
+                { leftColor: 0x60a5fa, leftOp: 0.10, rightColor: 0x1d4ed8, rightOp: 0.35, floorColor: 0x1e3a8a, floorOp: 0.32 },
+                { leftColor: 0x2563eb, leftOp: 0.38, rightColor: 0x93c5fd, rightOp: 0.16, floorColor: 0x1e40af, floorOp: 0.34 }
+            ];
+
+            const palette = isObsidianScheme
+                ? darkSchemes[cubeIndex % darkSchemes.length]
+                : lightSchemes[cubeIndex % lightSchemes.length];
+
+            const makeFaceMat = (hexColor, baseOpacity, useTexture = true) => {
+                const mat = new THREE.MeshBasicMaterial({
+                    color: hexColor,
+                    map: useTexture ? grainTex : null,
+                    transparent: true,
+                    opacity: baseOpacity,
+                    side: THREE.BackSide,
+                    depthWrite: false
+                });
+                mat.userData = { baseOpacity };
+                return mat;
+            };
+
+            // BoxGeometry material order: [0: +X (Right back wall), 1: -X (Left front), 2: +Y (Top), 3: -Y (Bottom floor), 4: +Z (Right front), 5: -Z (Left back wall)]
+            return [
+                makeFaceMat(palette.rightColor, palette.rightOp, true),       // +X: Right interior back wall
+                makeFaceMat(palette.leftColor, palette.leftOp * 0.85, true),  // -X: Opposite wall (visible when spun)
+                makeFaceMat(palette.rightColor, 0.04, false),                 // +Y: Subtle top rim
+                makeFaceMat(palette.floorColor, palette.floorOp, true),       // -Y: Interior floor tone
+                makeFaceMat(palette.rightColor, palette.rightOp * 0.85, true),// +Z: Opposite wall (visible when spun)
+                makeFaceMat(palette.leftColor, palette.leftOp, true)          // -Z: Left interior back wall
+            ];
+        }
+
+        // --- Non-Overlapping M.C. Escher Honeycomb Isometric Lattice Generator ---
+        // Maps each cube to a unique (a, b) honeycomb coordinate -> (gx = -a, gy = -(a + b), gz = b).
+        // Uses asymmetric 1-node necks, 2-node offsets, and occasional 3-node terraces like the reference poster.
+        function generateEscherLatticeCoordinates(count, randomizeSeed = false) {
+            const abCells = [];
+            const occupied = new Set();
+
+            // Canonical 12-Cube Escher Poster Blueprint:
+            // Varied row densities (1 -> 2 -> 2 -> 1 neck -> 3 -> 2 -> 1) with architectural negative space
+            const canonicalHoneycomb = [
+                { a: 0, b: 0 },   // Row 0 (1 node):  #01 Top Pinnacle
+                { a: 1, b: 0 },   // Row 1 (2 nodes): #02 Upper-Left Wing
+                { a: 0, b: 1 },   // Row 1:           #03 Upper-Right Wing
+                { a: 2, b: 0 },   // Row 2 (2 nodes): #04 Mid-Upper Left
+                { a: 1, b: 1 },   // Row 2:           #05 Mid-Upper Center
+                { a: 1, b: 2 },   // Row 3 (1 node):  #06 Single Central Bridge Neck (creates poster cavity on left!)
+                { a: 3, b: 1 },   // Row 4 (3 nodes): #07 Lower-Mid Far-Left Wing
+                { a: 2, b: 2 },   // Row 4:           #08 Lower-Mid Center Hub
+                { a: 1, b: 3 },   // Row 4:           #09 Lower-Mid Right Terrace
+                { a: 3, b: 2 },   // Row 5 (1 node):  #10 Deep Left Conduit
+                { a: 3, b: 3 },   // Row 6 (2 nodes): #11 Foundation Center
+                { a: 2, b: 4 }    // Row 6:           #12 Bottom Right Satellite Anchor
+            ];
+
+            if (!randomizeSeed) {
+                for (let i = 0; i < count; i++) {
+                    if (i < canonicalHoneycomb.length) {
+                        const cell = canonicalHoneycomb[i];
+                        abCells.push({ ...cell });
+                        occupied.add(`${cell.a},${cell.b}`);
+                    } else {
+                        // Sparse 1-to-2 nodes per row for additional user-added cubes
+                        const extraIdx = i - canonicalHoneycomb.length;
+                        const extraRow = 7 + Math.floor(extraIdx * 0.75);
+                        const colShift = (extraIdx % 3 === 0) ? 0 : (extraIdx % 3 === 1 ? -1 : 1);
+                        const a = Math.floor(extraRow / 2) + colShift;
+                        const b = extraRow - a;
+                        if (!occupied.has(`${a},${b}`)) {
+                            abCells.push({ a, b });
+                            occupied.add(`${a},${b}`);
+                        } else {
+                            abCells.push({ a: a + 1, b });
+                            occupied.add(`${a + 1},${b}`);
+                        }
+                    }
+                }
+            } else {
+                // Random Escher Honeycomb Walk with row-density caps (mostly 1 or 2 nodes per row, rare 3)
+                abCells.push({ a: 0, b: 0 });
+                occupied.add('0,0');
+
+                const rowCounts = new Map();
+                rowCounts.set(0, 1);
+
+                // Assign each row a max capacity: 45% 1-node bridge, 40% 2-node pair, 15% 3-node terrace
+                const getRowCap = (r) => {
+                    if (!rowCounts.has(`cap_${r}`)) {
+                        const roll = Math.random();
+                        const cap = r === 0 ? 1 : (roll < 0.42 ? 1 : (roll < 0.85 ? 2 : 3));
+                        rowCounts.set(`cap_${r}`, cap);
+                    }
+                    return rowCounts.get(`cap_${r}`);
+                };
+
+                const honeycombSteps = [
+                    [1, 0],   // Down-Left edge neighbor (+1 row)
+                    [0, 1],   // Down-Right edge neighbor (+1 row)
+                    [1, 1],   // Vertical diamond drop (+2 rows)
+                    [1, -1],  // Left horizontal neighbor (same row)
+                    [-1, 1]   // Right horizontal neighbor (same row)
+                ];
+
+                for (let i = 1; i < count; i++) {
+                    // Prefer growing from the lowest active nodes so the tree cascades downward cleanly
+                    const parentIdx = Math.max(0, i - 1 - Math.floor(Math.random() * Math.min(2, i)));
+                    const parent = abCells[parentIdx];
+                    const shuffled = [...honeycombSteps].sort(() => Math.random() - 0.5);
+                    let placed = false;
+
+                    for (const [da, db] of shuffled) {
+                        const na = parent.a + da;
+                        const nb = parent.b + db;
+                        const row = na + nb;
+                        const col = nb - na;
+                        const currentInRow = rowCounts.get(row) || 0;
+
+                        if (row >= 1 && Math.abs(col) <= 2 && currentInRow < getRowCap(row)) {
+                            const key = `${na},${nb}`;
+                            if (!occupied.has(key)) {
+                                occupied.add(key);
+                                abCells.push({ a: na, b: nb });
+                                rowCounts.set(row, currentInRow + 1);
+                                placed = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!placed) {
+                        for (let r = 1; r < count * 2 + 6 && !placed; r++) {
+                            const currentInRow = rowCounts.get(r) || 0;
+                            if (currentInRow >= getRowCap(r)) continue;
+                            const cols = [-2, -1, 0, 1, 2].sort(() => Math.random() - 0.5);
+                            for (const c of cols) {
+                                if ((r + c) % 2 !== 0) continue;
+                                const na = (r - c) / 2;
+                                const nb = (r + c) / 2;
+                                const key = `${na},${nb}`;
+                                if (!occupied.has(key)) {
+                                    occupied.add(key);
+                                    abCells.push({ a: na, b: nb });
+                                    rowCounts.set(r, currentInRow + 1);
+                                    placed = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Convert honeycomb (a, b) cells to 3D isometric lattice coordinates (gx, gy, gz)
+            const coords = abCells.map(({ a, b }) => ({
+                a,
+                b,
+                gx: -a,
+                gy: -(a + b),
+                gz: b
+            }));
+
+            const forceOrder = document.getElementById('force-order-toggle')?.checked ?? true;
+            if (forceOrder) {
+                coords.sort((a, b) => (b.gy - a.gy) || ((a.gx + a.gz) - (b.gx + b.gz)));
+            }
+
+            return coords;
+        }
+
+        // --- Recompute Upright Escher Lattice Coordinates for Invert (Top <-> Bottom) & Flip L/R ---
+        // Keeps every individual cube 100% right-side up so its open cutaway interior is always clearly visible.
+        function updateLatticePositionsForFlipState(animateSpin = true) {
+            if (cubeNodes.length === 0) return;
+            const cubeSize = 4.8;
+
+            const maxRow = Math.max(...cubeNodes.map(cn => cn.baseAB.a + cn.baseAB.b));
+            const pivotA = Math.floor(maxRow / 2);
+            const pivotB = maxRow - pivotA;
+
+            cubeNodes.forEach((cn, idx) => {
+                let a = cn.baseAB.a;
+                let b = cn.baseAB.b;
+
+                // Invert Lattice Hierarchy (Bottom nodes flip to top pinnacle, top nodes flip to bottom)
+                if (isInvertedWorld) {
+                    a = pivotA - a;
+                    b = pivotB - b;
+                }
+
+                // Mirror Lattice Left / Right across the isometric vertical spine while keeping cubes upright
+                if (isMirroredLR) {
+                    const tmp = a;
+                    a = b;
+                    b = tmp;
+                }
+
+                const gx = -a;
+                const gy = -(a + b);
+                const gz = b;
+
+                cn.targetPos.set(gx * cubeSize, gy * cubeSize, gz * cubeSize);
+                cn.isUnlocked = true;
+
+                if (animateSpin) {
+                    cn.targetSpinY += (idx % 2 === 0 ? 1 : -1) * Math.PI * 2;
+                }
+            });
+
+            if (activeProjectIndex !== -1 && cubeNodes[activeProjectIndex]) {
+                const activeNode = cubeNodes[activeProjectIndex];
+                const activeCubePos = activeNode.targetPos.clone().add(activeNode.targetFocusOffset);
+                targetLookAt.copy(getLeftShowcaseCameraTarget(activeCubePos, targetZoom));
+            } else {
+                targetLookAt.copy(getScrollSpineTarget(scrollOffset));
+            }
+        }
+
+        // --- Build Full 3D Escher Lattice ---
+        function buildEscherPortfolioLattice(randomizeSeed = false) {
+            while (primaryLatticeGroup.children.length > 0) primaryLatticeGroup.remove(primaryLatticeGroup.children[0]);
+            while (bridgeLinesGroup.children.length > 0) bridgeLinesGroup.remove(bridgeLinesGroup.children[0]);
+            cubeNodes = [];
+
+            const forceOrder = document.getElementById('force-order-toggle')?.checked ?? true;
+            const orderedProjects = [...portfolioProjects];
+            if (forceOrder) {
+                orderedProjects.sort((a, b) => a.order - b.order);
+            }
+
+            const latticeCoords = generateEscherLatticeCoordinates(orderedProjects.length, randomizeSeed);
+            const cubeSize = 4.8;
+            const edgeHex = isObsidianScheme ? 0x93c5fd : 0x1e3a8a;
+
+            orderedProjects.forEach((proj, idx) => {
+                const coord = latticeCoords[idx];
+                const worldPos = new THREE.Vector3(
+                    coord.gx * cubeSize,
+                    coord.gy * cubeSize,
+                    coord.gz * cubeSize
+                );
+
+                const nodeGroup = new THREE.Group();
+
+                const scatterDir = new THREE.Vector3(
+                    (idx % 2 === 0 ? -1 : 1) * (14 + idx * 3.5),
+                    16 + idx * 3,
+                    (idx % 3 === 0 ? 1 : -1) * (14 + idx * 3)
+                );
+                const startPos = worldPos.clone().add(scatterDir);
+                nodeGroup.position.copy(startPos);
+                nodeGroup.scale.set(0.01, 0.01, 0.01);
+
+                // 1. Outer Architectural Wireframe Cube + Crisp Corner Bracket Ticks
+                const boxGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+                const edgesGeo = new THREE.EdgesGeometry(boxGeo);
+                const outlineMat = new THREE.LineBasicMaterial({
+                    color: edgeHex,
+                    transparent: true,
+                    opacity: 0.94
+                });
+                const outlineMesh = new THREE.LineSegments(edgesGeo, outlineMat);
+                nodeGroup.add(outlineMesh);
+
+                const tickLen = 0.24;
+                const halfTick = cubeSize / 2;
+                const tickPts = [];
+                [-1, 1].forEach(sx => [-1, 1].forEach(sy => [-1, 1].forEach(sz => {
+                    const vx = sx * halfTick, vy = sy * halfTick, vz = sz * halfTick;
+                    tickPts.push(new THREE.Vector3(vx, vy, vz), new THREE.Vector3(vx - sx * tickLen, vy, vz));
+                    tickPts.push(new THREE.Vector3(vx, vy, vz), new THREE.Vector3(vx, vy - sy * tickLen, vz));
+                    tickPts.push(new THREE.Vector3(vx, vy, vz), new THREE.Vector3(vx, vy, vz - sz * tickLen));
+                })));
+                const tickMat = new THREE.LineBasicMaterial({
+                    color: isObsidianScheme ? 0xf5f5f4 : 0x18181b,
+                    transparent: true,
+                    opacity: 0.72
+                });
+                tickMat.userData = { baseOpacity: 0.72 };
+                nodeGroup.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(tickPts), tickMat));
+
+                // 2. Multi-Tone Architectural Blueprint Side Walls (Different blue shades per wall & cube for poster depth)
+                const wallMaterials = createMultiToneCubeWallMaterials(idx);
+                const wallMesh = new THREE.Mesh(boxGeo, wallMaterials);
+                nodeGroup.add(wallMesh);
+
+                // 3. Real Image-to-3D Architectural Diorama Container (Replaces generic placeholders with actual 3D image relief)
+                const interiorSlot = new THREE.Group();
+                nodeGroup.add(interiorSlot);
+
+                const floorMat = new THREE.MeshBasicMaterial({
+                    map: null,
+                    transparent: true,
+                    opacity: 0.96
+                });
+                const floorGeo = new THREE.PlaneGeometry(cubeSize * 0.90, cubeSize * 0.62);
+                const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+                floorMesh.rotation.x = -Math.PI / 2;
+                floorMesh.position.y = -cubeSize * 0.24;
+
+                const realScreenMat = new THREE.MeshBasicMaterial({ map: null, side: THREE.DoubleSide });
+                const realScreenGeo = new THREE.PlaneGeometry(cubeSize * 0.90, cubeSize * 0.56);
+                const realScreenMesh = new THREE.Mesh(realScreenGeo, realScreenMat);
+                realScreenMesh.rotation.x = -Math.PI / 3;
+                realScreenMesh.position.y = 0.1;
+
+                const fadeMaterials = [tickMat];
+
+                const mountImage3DDiorama = (loadedTex) => {
+                    realScreenMat.map = loadedTex;
+                    realScreenMat.needsUpdate = true;
+
+                    const diorama = buildImage3DDiorama(proj, loadedTex, cubeSize, edgeHex);
+                    if (diorama) {
+                        while (interiorSlot.children.length > 0) interiorSlot.remove(interiorSlot.children[0]);
+                        interiorSlot.add(diorama.group);
+                        // Reset fadeMaterials to current diorama materials
+                        fadeMaterials.length = 0;
+                        fadeMaterials.push(tickMat, ...diorama.fadeMaterials);
+                        // Keep unfolded lower sub-cube screen aspect-ratio accurate
+                        const maxSubW = cubeSize * 0.90;
+                        const maxSubH = cubeSize * 0.56;
+                        let sw = maxSubW;
+                        let sh = sw / diorama.aspect;
+                        if (sh > maxSubH) {
+                            sh = maxSubH;
+                            sw = sh * diorama.aspect;
+                        }
+                        realScreenMesh.geometry.dispose();
+                        realScreenMesh.geometry = new THREE.PlaneGeometry(sw, sh);
+                    }
+                };
+
+                const tex = resolveProjectTexture(proj, (loadedTex) => {
+                    mountImage3DDiorama(loadedTex);
+                });
+                floorMat.map = tex;
+                realScreenMat.map = tex;
+
+                // If image texture is already loaded (cached or custom uploaded), immediately build real 3D relief;
+                // otherwise show temporary base plate + procedural fallback ONLY for image-less custom cubes.
+                if ((proj.customTexture || proj.loadedImageTexture) && tex && tex.image) {
+                    mountImage3DDiorama(tex);
+                } else if (proj.previewImage) {
+                    // Clean minimal plate while real screenshot loads (avoids flashing unrelated toy blocks)
+                    interiorSlot.add(floorMesh);
+                    floorMat.userData = { baseOpacity: 0.96 };
+                    fadeMaterials.push(floorMat);
+                } else {
+                    interiorSlot.add(floorMesh);
+                    interiorSlot.add(buildCubeInteriorSchematic(proj, cubeSize, edgeHex));
+                    floorMat.userData = { baseOpacity: 0.96 };
+                    fadeMaterials.push(floorMat);
+                }
+
+                // 5. Dual-Layer "REAL PROJECT" Sub-Cube (Unfolds directly underneath when clicked)
+                const realSubGroup = new THREE.Group();
+                realSubGroup.position.set(0, -cubeSize * 1.15, 0);
+                realSubGroup.scale.set(0.001, 0.001, 0.001);
+                realSubGroup.visible = false;
+
+                const subBoxGeo = new THREE.BoxGeometry(cubeSize * 0.96, cubeSize * 0.55, cubeSize * 0.96);
+                const subOutline = new THREE.LineSegments(
+                    new THREE.EdgesGeometry(subBoxGeo),
+                    new THREE.LineBasicMaterial({ color: 0x2563eb, transparent: true, opacity: 0.9 })
+                );
+                realSubGroup.add(subOutline);
+                realSubGroup.add(realScreenMesh);
+
+                const leaderPts = [];
+                const halfC = cubeSize * 0.46;
+                [[-halfC, -halfC], [halfC, -halfC], [-halfC, halfC], [halfC, halfC]].forEach(([lx, lz]) => {
+                    leaderPts.push(new THREE.Vector3(lx, cubeSize * 0.28, lz));
+                    leaderPts.push(new THREE.Vector3(lx, cubeSize * 0.85, lz));
+                });
+                const leaderGeo = new THREE.BufferGeometry().setFromPoints(leaderPts);
+                const leaderLines = new THREE.LineSegments(leaderGeo, new THREE.LineBasicMaterial({ color: 0x2563eb }));
+                realSubGroup.add(leaderLines);
+
+                nodeGroup.add(realSubGroup);
+
+                // 6. Invisible Hitbox for Raycasting
+                const hitMesh = new THREE.Mesh(
+                    boxGeo,
+                    new THREE.MeshBasicMaterial({ visible: false })
+                );
+                hitMesh.userData = { projectIndex: idx, project: proj };
+                nodeGroup.add(hitMesh);
+
+                primaryLatticeGroup.add(nodeGroup);
+
+                const initialClusterCount = 6;
+                cubeNodes.push({
+                    group: nodeGroup,
+                    realSubGroup,
+                    outlineMesh,
+                    wallMesh,
+                    floorMesh,
+                    fadeMaterials,
+                    baseAB: { a: coord.a, b: coord.b },
+                    startPos,
+                    currentBasePos: worldPos.clone(),
+                    targetPos: worldPos.clone(),
+                    focusOffset: new THREE.Vector3(0, 0, 0),
+                    targetFocusOffset: new THREE.Vector3(0, 0, 0),
+                    spinY: 0,
+                    targetSpinY: 0,
+                    spinX: 0,
+                    targetSpinX: 0,
+                    spinVelocityY: 0,
+                    dimFactor: 1.0,
+                    targetDimFactor: 1.0,
+                    assemblyProgress: 0,
+                    assemblyDelay: idx < initialClusterCount ? (idx * 0.08) : 0,
+                    scrollThreshold: idx < initialClusterCount ? -1 : ((idx - (initialClusterCount - 0.7)) / Math.max(1, orderedProjects.length - initialClusterCount)) * 0.75,
+                    isUnlocked: idx < initialClusterCount,
+                    project: proj,
+                    index: idx
+                });
+            });
+
+            if (isInvertedWorld || isMirroredLR) {
+                updateLatticePositionsForFlipState(false);
+                cubeNodes.forEach(cn => cn.currentBasePos.copy(cn.targetPos));
+            }
+
+            if (activeProjectIndex === -1) {
+                targetLookAt.copy(getScrollSpineTarget(scrollOffset));
+            }
+        }
+
+        // --- Populate Right-Side Architectural Dossier Panel Data ---
+        function populateRightDossierPanel(node, index) {
+            document.getElementById('inspector-order').textContent = `CUBE #${String(node.project.order).padStart(2, '0')}`;
+            document.getElementById('inspector-tag').textContent = node.project.tag;
+            document.getElementById('inspector-title').textContent = node.project.title;
+            document.getElementById('inspector-desc').textContent = node.project.desc;
+            document.getElementById('inspector-progress-label').textContent = `NODE ${String(index + 1).padStart(2, '0')} / ${String(cubeNodes.length).padStart(2, '0')}`;
+
+            document.getElementById('left-active-code').textContent = `CUBE #${String(node.project.order).padStart(2, '0')} // DRAG TO SPIN 360°`;
+            document.getElementById('left-callout-top').textContent = node.project.title;
+            document.getElementById('left-callout-bottom').textContent = `${node.project.tag} // SUB-CUBE`;
+
+            const tp = node.targetPos;
+            document.getElementById('spec-coord').textContent = `ISO // (${Math.round(tp.x / 4.8)}, ${Math.round(tp.y / 4.8)}, ${Math.round(tp.z / 4.8)})`;
+
+            const rawImg = document.getElementById('inspector-raw-img');
+            const rawVideo = document.getElementById('inspector-raw-video');
+            const mediaBadge = document.getElementById('inspector-media-badge');
+            const mediaLabel = document.getElementById('inspector-media-label');
+            const mediaHint = document.getElementById('inspector-media-hint');
+            const overlayCta = document.getElementById('inspector-overlay-cta');
+            const enlargeBtnLabel = document.getElementById('enlarge-raw-label');
+
+            if (node.project.previewVideo) {
+                rawImg.classList.add('hidden');
+                rawVideo.classList.remove('hidden');
+                rawVideo.poster = node.project.previewDataUrl || '';
+                if (rawVideo.getAttribute('src') !== node.project.previewVideo) {
+                    rawVideo.src = node.project.previewVideo;
+                    rawVideo.load();
+                }
+                rawVideo.play().catch(() => {});
+                if (mediaBadge) mediaBadge.classList.remove('hidden');
+                if (mediaLabel) mediaLabel.textContent = 'LIVE DEMO VIDEO // ARCHSCHOLAR';
+                if (mediaHint) mediaHint.textContent = 'CLICK VIDEO TO FULLSCREEN';
+                if (overlayCta) overlayCta.textContent = 'Play Fullscreen Demo Video ▶';
+                if (enlargeBtnLabel) enlargeBtnLabel.textContent = 'Watch Demo Video ▶';
+            } else {
+                rawVideo.pause();
+                rawVideo.classList.add('hidden');
+                rawImg.classList.remove('hidden');
+                rawImg.src = node.project.previewDataUrl || '';
+                if (mediaBadge) mediaBadge.classList.add('hidden');
+                if (mediaLabel) mediaLabel.textContent = node.project.isPrivate ? 'SYSTEM ARCHITECTURE SCHEMATIC' : 'UN-CUBED ORIGINAL INTERFACE';
+                if (mediaHint) mediaHint.textContent = 'CLICK IMAGE TO ENLARGE';
+                if (overlayCta) overlayCta.textContent = node.project.isPrivate ? 'Enlarge System Schematic +' : 'Enlarge Raw Screenshot +';
+                if (enlargeBtnLabel) enlargeBtnLabel.textContent = 'Fullscreen Raw Media +';
+            }
+
+            const liveUrlBtn = document.getElementById('inspector-live-url');
+            const privateBadge = document.getElementById('inspector-private-badge');
+            if (node.project.url && node.project.url.trim() !== '') {
+                liveUrlBtn.href = node.project.url;
+                liveUrlBtn.classList.remove('hidden');
+                if (privateBadge) privateBadge.classList.add('hidden');
+            } else {
+                liveUrlBtn.classList.add('hidden');
+                if (privateBadge) privateBadge.classList.toggle('hidden', !node.project.isPrivate);
+            }
+        }
+
+        // --- Focus / Zoom Camera Into a Specific Project Cube (Shifts Cube Left, Spins to Stop, Slides Right Panel In) ---
+        function focusOnProjectCube(index) {
+            if (index < 0 || index >= cubeNodes.length) return;
+            clearTimeout(transitionTimer);
+            isTransitioningNodes = false;
+            activeProjectIndex = index;
+            const node = cubeNodes[index];
+            node.isUnlocked = true;
+            node.assemblyProgress = 1;
+
+            hideHoverCallout();
+            setMainHeaderVisibility(false);
+
+            // Reset camera angles to crisp upright isometric elevation so cubes are always viewed right-side up
+            targetRotation.x = 0.52;
+            targetRotation.y = DEFAULT_ROT_Y;
+
+            // Physical showcase offset: lifts the selected cube slightly in 3D space
+            const showcasePopOffset = new THREE.Vector3(0, 0.65, 0);
+
+            cubeNodes.forEach((cn, idx) => {
+                if (idx === index) {
+                    cn.realSubGroup.visible = true;
+                    cn.outlineMesh.material.color.setHex(0x2563eb);
+                    cn.targetFocusOffset.copy(showcasePopOffset);
+                    // Spin the cube into place: start rotated by 300 degrees and smoothly decelerate to 0
+                    cn.spinY = -Math.PI * 1.65;
+                    cn.targetSpinY = 0;
+                    cn.spinX = 0.28;
+                    cn.targetSpinX = 0;
+                    cn.spinVelocityY = 0;
+                    cn.targetDimFactor = 1.0;
+                } else {
+                    cn.realSubGroup.visible = false;
+                    cn.outlineMesh.material.color.setHex(isObsidianScheme ? 0x93c5fd : 0x1e3a8a);
+                    cn.targetFocusOffset.set(0, 0, 0);
+                    cn.targetSpinY = 0;
+                    cn.targetSpinX = 0;
+                    cn.spinVelocityY = 0;
+                    // Fade background lattice back so the left-side hero cube stands out cleanly
+                    cn.targetDimFactor = 0.08;
+                }
+            });
+
+            const isMobile = window.innerWidth < 768;
+            const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+            const frustumSize = camera ? camera.userData.frustumSize : 26;
+            // Ensure zoom level always leaves generous horizontal clearance in the left half of the viewport
+            const maxSafeLeftZoom = isMobile ? 1.45 : Math.max(1.2, (frustumSize * aspect * 0.23) / 3.9);
+            targetZoom = Math.min(getResponsiveBaseZoom() * (isMobile ? 1.18 : 1.26), maxSafeLeftZoom);
+
+            const activeCubePos = node.targetPos.clone().add(showcasePopOffset);
+            targetLookAt.copy(getLeftShowcaseCameraTarget(activeCubePos, targetZoom));
+
+            populateRightDossierPanel(node, index);
+            document.getElementById('project-inspector').classList.remove('inspector-hidden');
+            document.getElementById('left-cube-callouts').classList.remove('callouts-hidden');
+        }
+
+        // --- Choreographed Sequential Node Transition:
+        // 1. Current cube spins & slides back to its lattice home, right panel slides away.
+        // 2. Camera glides to next node, which spins & slides into the left showcase while new right panel slides in.
+        function transitionToProjectCube(nextIndex) {
+            if (cubeNodes.length === 0) return;
+            const wrappedIndex = (nextIndex + cubeNodes.length) % cubeNodes.length;
+
+            if (activeProjectIndex === -1) {
+                focusOnProjectCube(wrappedIndex);
+                return;
+            }
+
+            if (isTransitioningNodes) {
+                clearTimeout(transitionTimer);
+            }
+            isTransitioningNodes = true;
+
+            // Step 1: Slide right panel out & hide left callouts
+            const rawVideo = document.getElementById('inspector-raw-video');
+            if (rawVideo) rawVideo.pause();
+            document.getElementById('project-inspector').classList.add('inspector-hidden');
+            document.getElementById('left-cube-callouts').classList.add('callouts-hidden');
+
+            // Slide and spin current cube back into its original lattice coordinate
+            const prevNode = cubeNodes[activeProjectIndex];
+            if (prevNode) {
+                prevNode.targetFocusOffset.set(0, 0, 0);
+                prevNode.targetSpinY = Math.PI * 1.0; // Spin back as it docks
+                prevNode.targetSpinX = 0;
+                prevNode.realSubGroup.visible = false;
+                prevNode.outlineMesh.material.color.setHex(isObsidianScheme ? 0x93c5fd : 0x1e3a8a);
+            }
+
+            // Briefly restore lattice visibility during the camera travel between nodes
+            cubeNodes.forEach(cn => {
+                cn.targetDimFactor = 0.55;
+            });
+
+            const nextNode = cubeNodes[wrappedIndex];
+            if (nextNode) {
+                nextNode.isUnlocked = true;
+                nextNode.assemblyProgress = 1;
+                const midPoint = nextNode.targetPos.clone();
+                midPoint.x *= currentScaleX;
+                targetLookAt.copy(midPoint);
+                targetZoom = getResponsiveBaseZoom() * 1.22;
+            }
+
+            // Step 2: After current cube docks & panel slides away, spin new cube into left position & slide new panel in
+            transitionTimer = setTimeout(() => {
+                if (prevNode) {
+                    prevNode.spinY = 0;
+                    prevNode.targetSpinY = 0;
+                }
+                focusOnProjectCube(wrappedIndex);
+                isTransitioningNodes = false;
+            }, 440);
+        }
+
+        function closeProjectInspector() {
+            clearTimeout(transitionTimer);
+            isTransitioningNodes = false;
+            activeProjectIndex = -1;
+            targetZoom = getResponsiveBaseZoom();
+            targetLookAt.copy(getScrollSpineTarget(scrollOffset));
+            targetRotation.x = DEFAULT_ROT_X;
+            targetRotation.y = DEFAULT_ROT_Y;
+            setMainHeaderVisibility(scrollOffset <= 0.05);
+
+            cubeNodes.forEach(cn => {
+                cn.realSubGroup.visible = false;
+                cn.targetFocusOffset.set(0, 0, 0);
+                cn.targetSpinY = 0;
+                cn.targetSpinX = 0;
+                cn.spinVelocityY = 0;
+                cn.targetDimFactor = 1.0;
+                cn.outlineMesh.material.color.setHex(isObsidianScheme ? 0x93c5fd : 0x1e3a8a);
+            });
+
+            const rawVideo = document.getElementById('inspector-raw-video');
+            if (rawVideo) rawVideo.pause();
+            document.getElementById('project-inspector').classList.add('inspector-hidden');
+            document.getElementById('left-cube-callouts').classList.add('callouts-hidden');
+        }
+
+        // --- Dynamic Hover Leader Line & Callout Updater ---
+        function hideHoverCallout() {
+            hoveredProjectIndex = -1;
+            const svg = document.getElementById('hover-svg');
+            const card = document.getElementById('hover-callout-card');
+            if (svg) svg.classList.add('hidden');
+            if (card) card.classList.add('hidden');
+            if (activeProjectIndex === -1 && !isDragging) {
+                container.style.cursor = 'grab';
+            }
+            cubeNodes.forEach((cn, idx) => {
+                if (idx !== activeProjectIndex) {
+                    cn.outlineMesh.material.color.setHex(isObsidianScheme ? 0x93c5fd : 0x1e3a8a);
+                }
+            });
+        }
+
+        function updateHoverLeaderCallout(clientX, clientY) {
+            if (activeProjectIndex !== -1 || isDragging) {
+                hideHoverCallout();
+                return;
+            }
+
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const hitTargets = cubeNodes
+                .filter(cn => cn.isUnlocked && cn.assemblyProgress > 0.35)
+                .map(cn => cn.group.children.find(c => c.userData && c.userData.projectIndex !== undefined))
+                .filter(Boolean);
+
+            const intersects = raycaster.intersectObjects(hitTargets, false);
+
+            if (intersects.length > 0) {
+                const idx = intersects[0].object.userData.projectIndex;
+                const node = cubeNodes[idx];
+                if (!node) return;
+
+                hoveredProjectIndex = idx;
+                container.style.cursor = 'pointer';
+
+                cubeNodes.forEach((cn, i) => {
+                    if (i !== activeProjectIndex) {
+                        cn.outlineMesh.material.color.setHex(
+                            i === idx ? 0x2563eb : (isObsidianScheme ? 0x93c5fd : 0x1e3a8a)
+                        );
+                    }
+                });
+
+                // Project cube center to 2D screen coordinates for the technical leader line
+                const worldCenter = new THREE.Vector3();
+                node.group.getWorldPosition(worldCenter);
+                const projected = worldCenter.clone().project(camera);
+
+                const anchorX = (projected.x * 0.5 + 0.5) * window.innerWidth;
+                const anchorY = (-projected.y * 0.5 + 0.5) * window.innerHeight;
+
+                const onRightSide = anchorX > window.innerWidth * 0.55;
+                const elbowX = onRightSide ? anchorX - 64 : anchorX + 64;
+                const elbowY = Math.max(80, Math.min(window.innerHeight - 120, anchorY - 42));
+                const endX = onRightSide ? elbowX - 36 : elbowX + 36;
+
+                const svg = document.getElementById('hover-svg');
+                const polyline = document.getElementById('hover-leader-line');
+                const dot = document.getElementById('hover-anchor-dot');
+                const joint = document.getElementById('hover-joint-box');
+                const card = document.getElementById('hover-callout-card');
+
+                polyline.setAttribute('points', `${anchorX},${anchorY} ${elbowX},${elbowY} ${endX},${elbowY}`);
+                dot.setAttribute('cx', anchorX);
+                dot.setAttribute('cy', anchorY);
+                joint.setAttribute('x', elbowX - 3);
+                joint.setAttribute('y', elbowY - 3);
+
+                document.getElementById('hover-proj-order').textContent = `CUBE #${String(node.project.order).padStart(2, '0')}`;
+                document.getElementById('hover-proj-tag').textContent = node.project.tag;
+                document.getElementById('hover-proj-title').textContent = node.project.title;
+                document.getElementById('hover-proj-desc').textContent = node.project.desc;
+
+                svg.classList.remove('hidden');
+                card.classList.remove('hidden');
+
+                const cardWidth = Math.min(300, window.innerWidth * 0.42);
+                const cardLeft = onRightSide
+                    ? Math.max(16, endX - cardWidth - 8)
+                    : Math.min(window.innerWidth - cardWidth - 16, endX + 8);
+                const cardTop = Math.max(20, Math.min(window.innerHeight - 140, elbowY - 28));
+
+                card.style.left = `${cardLeft}px`;
+                card.style.top = `${cardTop}px`;
+            } else {
+                hideHoverCallout();
+            }
+        }
+
+        // --- Studio Drawer Project Management ---
+        function updateCustomMediaNotice() {
+            const hasCustom = portfolioProjects.some(p => p.customTexture !== null);
+            const notice = document.getElementById('custom-media-host-notice');
+            if (notice) {
+                notice.classList.toggle('hidden', !hasCustom);
+            }
+        }
+
+        function renderStudioProjectList() {
+            const list = document.getElementById('studio-project-list');
+            const badge = document.getElementById('cube-count-badge');
+            if (!list) return;
+
+            badge.textContent = `${portfolioProjects.length} CUBES`;
+            list.innerHTML = '';
+
+            const sorted = [...portfolioProjects].sort((a, b) => a.order - b.order);
+            sorted.forEach((proj) => {
+                const row = document.createElement('div');
+                row.className = 'p-2.5 rounded-lg border border-stone-400/25 bg-white/60 dark:bg-stone-900/60 flex items-center justify-between gap-2';
+                row.innerHTML = `
+                    <div class="flex items-center gap-2 min-w-0">
+                        <input type="number" min="1" value="${proj.order}" data-id="${proj.id}" class="order-input w-11 text-center mono text-[11px] font-bold py-1 rounded border border-stone-300 bg-white text-stone-900" title="Forced Order #" />
+                        <div class="min-w-0">
+                            <div class="mono text-[11px] font-bold uppercase truncate">${proj.title}</div>
+                            <div class="mono text-[9px] opacity-65 truncate">${proj.tag}</div>
+                        </div>
+                    </div>
+                    <button data-remove-id="${proj.id}" class="remove-proj-btn px-2 py-1 rounded text-[10px] mono font-bold text-rose-700 hover:bg-rose-600 hover:text-white transition" title="Remove Cube">✕</button>
+                `;
+                list.appendChild(row);
+            });
+
+            list.querySelectorAll('.order-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    const newOrder = Math.max(1, parseInt(e.target.value, 10) || 1);
+                    const target = portfolioProjects.find(p => p.id === id);
+                    if (target) {
+                        target.order = newOrder;
+                        buildEscherPortfolioLattice(false);
+                        renderStudioProjectList();
+                        showToast(`REORDERED TO #${String(newOrder).padStart(2, '0')}`);
+                    }
+                });
+            });
+
+            list.querySelectorAll('.remove-proj-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (portfolioProjects.length <= 1) {
+                        showToast('AT LEAST 1 CUBE REQUIRED');
+                        return;
+                    }
+                    const id = e.currentTarget.getAttribute('data-remove-id');
+                    portfolioProjects = portfolioProjects.filter(p => p.id !== id);
+                    closeProjectInspector();
+                    buildEscherPortfolioLattice(false);
+                    renderStudioProjectList();
+                    updateCustomMediaNotice();
+                    showToast('CUBE REMOVED FROM LATTICE');
+                });
+            });
+
+            updateCustomMediaNotice();
+        }
+
+        // --- Share & Export Utilities ---
+        function exportCleanSnapshot() {
+            try {
+                renderer.render(scene, camera);
+                const glCanvas = renderer.domElement;
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = glCanvas.width;
+                exportCanvas.height = glCanvas.height;
+                const ctx = exportCanvas.getContext('2d');
+
+                ctx.drawImage(glCanvas, 0, 0);
+
+                // Stamp clean brutalist header onto snapshot (no settings or creator UI)
+                const dpr = window.devicePixelRatio || 1;
+                ctx.fillStyle = isObsidianScheme ? '#f5f5f4' : '#141413';
+                ctx.font = `900 ${Math.round(54 * dpr)}px "Space Grotesk", "Inter", sans-serif`;
+                ctx.fillText((portfolioIdentity.name || 'KAI KLEINBARD').toUpperCase(), 32 * dpr, 74 * dpr);
+
+                ctx.fillStyle = '#1d4ed8';
+                ctx.fillRect(32 * dpr, 88 * dpr, 22 * dpr, 8 * dpr);
+
+                ctx.fillStyle = isObsidianScheme ? 'rgba(245,245,244,0.8)' : 'rgba(20,20,19,0.8)';
+                ctx.font = `700 ${Math.round(12 * dpr)}px "JetBrains Mono", monospace`;
+                ctx.fillText((portfolioIdentity.subheading || '').toUpperCase(), 62 * dpr, 96 * dpr);
+
+                const link = document.createElement('a');
+                link.download = `${(portfolioIdentity.name || 'escher-portfolio').toLowerCase().replace(/\s+/g, '-')}-snapshot.png`;
+                link.href = exportCanvas.toDataURL('image/png');
+                link.click();
+                showToast('CLEAN SNAPSHOT DOWNLOADED');
+            } catch (err) {
+                console.error(err);
+                showToast('SNAPSHOT EXPORT FAILED');
+            }
+        }
+
+        function generateShareableUrl(fromSettingsPanel = false) {
+            try {
+                const payload = {
+                    identity: portfolioIdentity,
+                    projects: portfolioProjects.map(p => ({
+                        id: p.id,
+                        order: p.order,
+                        title: p.title,
+                        tag: p.tag,
+                        url: p.url,
+                        desc: p.desc,
+                        type: p.type,
+                        previewImage: p.previewImage || null,
+                        previewVideo: p.previewVideo || null,
+                        isPrivate: !!p.isPrivate
+                    }))
+                };
+                const jsonStr = JSON.stringify(payload);
+                const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+                const baseUrl = window.location.href.split('?')[0];
+                const shareUrl = `${baseUrl}?portfolio=${encoded}`;
+
+                const inputEl = document.getElementById(fromSettingsPanel ? 'settings-share-url-input' : 'share-url-input');
+                const boxEl = document.getElementById(fromSettingsPanel ? 'settings-share-url-box' : 'share-url-box');
+
+                if (inputEl && boxEl) {
+                    inputEl.value = shareUrl;
+                    boxEl.classList.remove('hidden');
+                    inputEl.select();
+                    document.execCommand('copy');
+                }
+                showToast('SHAREABLE PORTFOLIO URL COPIED');
+            } catch (err) {
+                console.error(err);
+                showToast('COULD NOT GENERATE SHARE URL');
+            }
+        }
+
+        function downloadStandaloneHtml() {
+            try {
+                const serializedIdentity = JSON.stringify(portfolioIdentity);
+                const serializedProjects = JSON.stringify(
+                    portfolioProjects.map(p => ({
+                        id: p.id,
+                        order: p.order,
+                        title: p.title,
+                        tag: p.tag,
+                        url: p.url,
+                        desc: p.desc,
+                        type: p.type,
+                        previewImage: p.previewImage || null,
+                        previewVideo: p.previewVideo || null,
+                        isPrivate: !!p.isPrivate,
+                        customTexture: null,
+                        previewDataUrl: p.previewImage || null
+                    }))
+                );
+
+                let htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+                htmlContent = htmlContent.replace(
+                    'const IS_STANDALONE_EXPORT = false;',
+                    `const IS_STANDALONE_EXPORT = true;\n        window.__EXPORTED_IDENTITY__ = ${serializedIdentity};\n        window.__EXPORTED_PROJECTS__ = ${serializedProjects};`
+                );
+
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${(portfolioIdentity.name || 'escher-portfolio').toLowerCase().replace(/\s+/g, '-')}-portfolio.html`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('STANDALONE HTML PORTFOLIO DOWNLOADED');
+            } catch (err) {
+                console.error(err);
+                showToast('EXPORT HTML FAILED');
+            }
+        }
+
+        // --- Scene Toggles ---
+        function toggleInceptionInvert() {
+            isInvertedWorld = !isInvertedWorld;
+            const btn = document.getElementById('inception-invert-btn');
+            const label = document.getElementById('invert-btn-text');
+            if (btn) btn.classList.toggle('active-toggle', isInvertedWorld);
+            if (label) label.textContent = isInvertedWorld ? 'Inverted' : 'Invert';
+
+            // Keep cubes 100% upright while flipping the Escher lattice hierarchy top <-> bottom
+            targetCameraRoll = 0;
+            updateLatticePositionsForFlipState(true);
+            applyHeaderAndHudFlipTransforms();
+            showToast(isInvertedWorld ? 'LATTICE INVERTED (UPRIGHT CUBES)' : 'LATTICE RESTORED');
+        }
+
+        function toggleInceptionMirror() {
+            isMirroredLR = !isMirroredLR;
+            const btn = document.getElementById('inception-mirror-btn');
+            if (btn) btn.classList.toggle('active-toggle', isMirroredLR);
+
+            // Mirror lattice horizontally while keeping cubes upright & un-mirrored internally
+            targetScaleX = 1;
+            updateLatticePositionsForFlipState(true);
+            applyHeaderAndHudFlipTransforms();
+            showToast(isMirroredLR ? 'LATTICE MIRRORED L/R' : 'HORIZONTAL ORIENTATION RESTORED');
+        }
+
+        function toggleColorScheme() {
+            isObsidianScheme = !isObsidianScheme;
+            document.documentElement.classList.toggle('dark', isObsidianScheme);
+            document.body.classList.toggle('obsidian-mode', isObsidianScheme);
+            document.body.style.backgroundColor = isObsidianScheme ? '#111113' : '#e6e3dd';
+            document.body.style.color = isObsidianScheme ? '#f5f5f4' : '#141413';
+            scene.background = new THREE.Color(isObsidianScheme ? 0x111113 : 0xe6e3dd);
+
+            const textEl = document.getElementById('color-scheme-text');
+            if (textEl) textEl.textContent = isObsidianScheme ? 'Scheme: Obsidian' : 'Scheme: Alabaster';
+
+            buildEscherPortfolioLattice(false);
+            showToast(isObsidianScheme ? 'OBSIDIAN SCHEME ACTIVE' : 'ALABASTER SCHEME ACTIVE');
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            // Window Resize
+            window.addEventListener('resize', () => {
+                const aspect = window.innerWidth / window.innerHeight;
+                const frustumSize = camera.userData.frustumSize;
+                camera.left = -frustumSize * aspect / 2;
+                camera.right = frustumSize * aspect / 2;
+                camera.top = frustumSize / 2;
+                camera.bottom = -frustumSize / 2;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+
+                if (activeProjectIndex !== -1 && cubeNodes[activeProjectIndex]) {
+                    const node = cubeNodes[activeProjectIndex];
+                    const activeCubePos = node.targetPos.clone().add(node.targetFocusOffset);
+                    targetLookAt.copy(getLeftShowcaseCameraTarget(activeCubePos, targetZoom));
+                } else {
+                    targetZoom = getResponsiveBaseZoom();
+                }
+            });
+
+            // Mouse / Pointer Orbit & Cube Drag-to-Spin
+            container.addEventListener('pointerdown', (e) => {
+                isDragging = true;
+                pointerDownPos = { x: e.clientX, y: e.clientY };
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+                container.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('pointermove', (e) => {
+                if (isDragging) {
+                    const dx = e.clientX - previousMousePosition.x;
+                    const dy = e.clientY - previousMousePosition.y;
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+
+                    if (activeProjectIndex !== -1 && cubeNodes[activeProjectIndex]) {
+                        // Dragging while zoomed in spins the active showcase cube 360° with inertia
+                        const node = cubeNodes[activeProjectIndex];
+                        node.targetSpinY += dx * 0.012;
+                        node.spinVelocityY = dx * 0.004;
+                        node.targetSpinX = Math.max(-0.55, Math.min(0.55, node.targetSpinX + dy * 0.008));
+                    } else {
+                        // Subtle isometric orbit when browsing full lattice
+                        targetRotation.y -= dx * 0.0055;
+                        targetRotation.x = Math.max(0.18, Math.min(1.15, targetRotation.x + dy * 0.0045));
+                        hideHoverCallout();
+                    }
+                } else {
+                    updateHoverLeaderCallout(e.clientX, e.clientY);
+                }
+            });
+
+            window.addEventListener('pointerup', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                container.style.cursor = 'grab';
+
+                const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+                if (dist < 6) {
+                    // Click detected: check if user clicked on a cube
+                    const rect = renderer.domElement.getBoundingClientRect();
+                    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                    raycaster.setFromCamera(mouse, camera);
+
+                    const hitTargets = cubeNodes
+                        .filter(cn => cn.isUnlocked)
+                        .map(cn => cn.group.children.find(c => c.userData && c.userData.projectIndex !== undefined))
+                        .filter(Boolean);
+
+                    const intersects = raycaster.intersectObjects(hitTargets, false);
+                    if (intersects.length > 0) {
+                        const clickedIdx = intersects[0].object.userData.projectIndex;
+                        if (clickedIdx !== activeProjectIndex) {
+                            focusOnProjectCube(clickedIdx);
+                        }
+                    } else if (activeProjectIndex !== -1) {
+                        closeProjectInspector();
+                    }
+                }
+            });
+
+            // Wheel Scroll: Descend through Escher lattice, progressively unlock cubes, fade main header, dismiss descriptions
+            window.addEventListener('wheel', (e) => {
+                const studioOpen = !document.getElementById('studio-drawer').classList.contains('drawer-closed');
+                const lightboxOpen = !document.getElementById('lightbox-modal').classList.contains('hidden');
+                if (studioOpen || lightboxOpen) return;
+
+                if (e.target.closest('#project-inspector')) return;
+
+                if (activeProjectIndex !== -1) {
+                    closeProjectInspector();
+                }
+                hideHoverCallout();
+
+                const delta = e.deltaY * 0.00055;
+                targetScrollOffset = Math.max(0, Math.min(1, targetScrollOffset + delta));
+
+                if (e.deltaY > 2 && targetScrollOffset > 0.04) {
+                    setMainHeaderVisibility(false);
+                } else if (e.deltaY < -2 || targetScrollOffset <= 0.03) {
+                    setMainHeaderVisibility(true);
+                }
+
+                targetLookAt.copy(getScrollSpineTarget(targetScrollOffset));
+            }, { passive: true });
+
+            // Settings Panel Smooth Accordion Toggle
+            const toggleSettings = () => {
+                const grid = document.getElementById('control-buttons-grid');
+                const btn = document.getElementById('toggle-panel-size-btn');
+                const gear = document.getElementById('settings-gear-icon');
+                const isOpen = grid.classList.toggle('settings-open');
+                btn.textContent = isOpen ? '[–]' : '[+]';
+                gear.style.transform = isOpen ? 'rotate(90deg)' : 'rotate(0deg)';
+            };
+            document.getElementById('toggle-panel-size-btn').addEventListener('click', toggleSettings);
+            document.getElementById('settings-header-btn').addEventListener('click', toggleSettings);
+
+            // Scene Control Buttons
+            document.getElementById('regen-shape-btn').addEventListener('click', () => {
+                closeProjectInspector();
+                buildEscherPortfolioLattice(true);
+                showToast('NEW RANDOM ESCHER LATTICE GENERATED');
+            });
+
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                closeProjectInspector();
+                targetScrollOffset = 0;
+                scrollOffset = 0;
+                targetRotation.x = DEFAULT_ROT_X;
+                targetRotation.y = DEFAULT_ROT_Y;
+                targetZoom = getResponsiveBaseZoom();
+                setMainHeaderVisibility(true);
+                buildEscherPortfolioLattice(false);
+                showToast('ISOMETRIC LATTICE RESET');
+            });
+
+            document.getElementById('inception-invert-btn').addEventListener('click', toggleInceptionInvert);
+            document.getElementById('bottom-mirrored-header').addEventListener('click', toggleInceptionInvert);
+            document.getElementById('inception-mirror-btn').addEventListener('click', toggleInceptionMirror);
+            document.getElementById('reverse-color-btn').addEventListener('click', toggleColorScheme);
+
+            // Share & Export Buttons
+            document.getElementById('download-btn').addEventListener('click', exportCleanSnapshot);
+            document.getElementById('export-clean-screenshot-btn').addEventListener('click', exportCleanSnapshot);
+            document.getElementById('quick-share-url-btn').addEventListener('click', () => generateShareableUrl(true));
+            document.getElementById('generate-share-url-btn').addEventListener('click', () => generateShareableUrl(false));
+            document.getElementById('quick-export-html-btn').addEventListener('click', downloadStandaloneHtml);
+            document.getElementById('export-standalone-html-btn').addEventListener('click', downloadStandaloneHtml);
+
+            document.getElementById('close-settings-url-box').addEventListener('click', () => {
+                document.getElementById('settings-share-url-box').classList.add('hidden');
+            });
+
+            // Split-Screen Inspector Navigation & Spin Controls
+            document.getElementById('close-inspector-btn').addEventListener('click', closeProjectInspector);
+            document.getElementById('prev-cube-btn').addEventListener('click', () => transitionToProjectCube(activeProjectIndex - 1));
+            document.getElementById('next-cube-btn').addEventListener('click', () => transitionToProjectCube(activeProjectIndex + 1));
+            document.getElementById('footer-prev-btn').addEventListener('click', () => transitionToProjectCube(activeProjectIndex - 1));
+            document.getElementById('footer-next-btn').addEventListener('click', () => transitionToProjectCube(activeProjectIndex + 1));
+
+            document.getElementById('spin-impulse-btn').addEventListener('click', () => {
+                if (activeProjectIndex !== -1 && cubeNodes[activeProjectIndex]) {
+                    cubeNodes[activeProjectIndex].targetSpinY += Math.PI * 2;
+                }
+            });
+
+            document.querySelectorAll('.iso-stratum-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    if (activeProjectIndex !== -1 && cubeNodes[activeProjectIndex]) {
+                        const angle = parseFloat(card.getAttribute('data-angle')) || 0;
+                        cubeNodes[activeProjectIndex].targetSpinY = angle;
+                    }
+                });
+            });
+
+            // Lightbox Modal for Enlarged Un-Cubed Image or Demo Video
+            const openLightbox = () => {
+                if (activeProjectIndex === -1 || !cubeNodes[activeProjectIndex]) return;
+                const proj = cubeNodes[activeProjectIndex].project;
+                const lbImg = document.getElementById('lightbox-img');
+                const lbVideo = document.getElementById('lightbox-video');
+                document.getElementById('lightbox-title').textContent = proj.previewVideo
+                    ? `${proj.title} // LIVE DEMO VIDEO`
+                    : `${proj.title} // UN-CUBED ORIGINAL MEDIA`;
+
+                if (proj.previewVideo) {
+                    lbImg.classList.add('hidden');
+                    lbVideo.classList.remove('hidden');
+                    lbVideo.poster = proj.previewDataUrl || '';
+                    lbVideo.src = proj.previewVideo;
+                    lbVideo.currentTime = 0;
+                    lbVideo.play().catch(() => {});
+                } else {
+                    lbVideo.pause();
+                    lbVideo.classList.add('hidden');
+                    lbImg.classList.remove('hidden');
+                    lbImg.src = proj.previewDataUrl || '';
+                }
+                const modal = document.getElementById('lightbox-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            };
+            const closeLightbox = () => {
+                const lbVideo = document.getElementById('lightbox-video');
+                if (lbVideo) lbVideo.pause();
+                const modal = document.getElementById('lightbox-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            };
+            document.getElementById('inspector-thumb-wrap').addEventListener('click', openLightbox);
+            document.getElementById('enlarge-raw-btn').addEventListener('click', openLightbox);
+            document.getElementById('close-lightbox-btn').addEventListener('click', closeLightbox);
+            document.getElementById('lightbox-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'lightbox-modal') closeLightbox();
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                    if (activeProjectIndex !== -1) closeProjectInspector();
+                } else if (activeProjectIndex !== -1 && e.key === 'ArrowRight') {
+                    transitionToProjectCube(activeProjectIndex + 1);
+                } else if (activeProjectIndex !== -1 && e.key === 'ArrowLeft') {
+                    transitionToProjectCube(activeProjectIndex - 1);
+                }
+            });
+
+            // Studio Drawer Open / Close & Form Handling
+            const studioDrawer = document.getElementById('studio-drawer');
+            document.getElementById('toggle-studio-btn').addEventListener('click', () => {
+                studioDrawer.classList.toggle('drawer-closed');
+            });
+            document.getElementById('close-studio-btn').addEventListener('click', () => {
+                studioDrawer.classList.add('drawer-closed');
+            });
+
+            document.getElementById('creator-name-input').addEventListener('input', (e) => {
+                portfolioIdentity.name = e.target.value || 'KAI KLEINBARD';
+                updateIdentityDisplay();
+            });
+            document.getElementById('creator-sub-input').addEventListener('input', (e) => {
+                portfolioIdentity.subheading = e.target.value || 'ARCHITECTURAL AI SYSTEMS';
+                updateIdentityDisplay();
+            });
+
+            document.getElementById('force-order-toggle').addEventListener('change', () => {
+                buildEscherPortfolioLattice(false);
+                showToast('ORDERING RULE UPDATED');
+            });
+
+            document.getElementById('studio-regen-btn').addEventListener('click', () => {
+                closeProjectInspector();
+                buildEscherPortfolioLattice(true);
+                showToast('RANDOMIZED ESCHER SHAPE');
+            });
+
+            document.getElementById('new-proj-image').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                document.getElementById('upload-filename').textContent = file.name.slice(0, 22);
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    pendingUploadedDataUrl = ev.target.result;
+                    const img = new Image();
+                    img.onload = () => {
+                        const tex = new THREE.Texture(img);
+                        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                        tex.needsUpdate = true;
+                        pendingUploadedTexture = tex;
+                        showToast('SCREENSHOT LOADED FOR NEW CUBE');
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            document.getElementById('add-proj-btn').addEventListener('click', () => {
+                const titleInput = document.getElementById('new-proj-title');
+                const tagInput = document.getElementById('new-proj-tag');
+                const orderInput = document.getElementById('new-proj-order');
+                const urlInput = document.getElementById('new-proj-url');
+                const descInput = document.getElementById('new-proj-desc');
+
+                const title = (titleInput.value || '').trim() || `NEW SYSTEM // ${portfolioProjects.length + 1}`;
+                const tag = (tagInput.value || '').trim() || '3D SCHEMATIC';
+                const order = Math.max(1, parseInt(orderInput.value, 10) || (portfolioProjects.length + 1));
+                const url = (urlInput.value || '').trim();
+                const desc = (descInput.value || '').trim() || 'Custom architectural 3D schematic cube.';
+                const types = ['strata_pipes', 'escher_stairs', 'reactor_array', 'aqueduct_arches', 'gyro_core', 'silo_matrix', 'memory_towers'];
+
+                portfolioProjects.push({
+                    id: 'custom-' + Date.now(),
+                    order,
+                    title: title.toUpperCase(),
+                    tag: tag.toUpperCase(),
+                    url,
+                    desc,
+                    type: types[portfolioProjects.length % types.length],
+                    customTexture: pendingUploadedTexture,
+                    previewDataUrl: pendingUploadedDataUrl
+                });
+
+                pendingUploadedTexture = null;
+                pendingUploadedDataUrl = null;
+                titleInput.value = '';
+                tagInput.value = '';
+                urlInput.value = '';
+                descInput.value = '';
+                orderInput.value = portfolioProjects.length + 1;
+                document.getElementById('upload-filename').textContent = 'Upload Screenshot (Optional)';
+
+                buildEscherPortfolioLattice(false);
+                renderStudioProjectList();
+                showToast(`ADDED CUBE #${String(order).padStart(2, '0')}`);
+            });
+        }
+
+        // --- Main Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            scrollOffset += (targetScrollOffset - scrollOffset) * 0.1;
+            currentZoom += (targetZoom - currentZoom) * 0.085;
+            currentRotation.x += (targetRotation.x - currentRotation.x) * 0.085;
+            currentRotation.y += (targetRotation.y - currentRotation.y) * 0.085;
+            currentCameraRoll += (targetCameraRoll - currentCameraRoll) * 0.085;
+            currentScaleX += (targetScaleX - currentScaleX) * 0.085;
+            cameraTarget.lerp(targetLookAt, 0.09);
+
+            worldGroup.scale.x = currentScaleX;
+
+            // Update Orthographic Camera Position & Zoom
+            camera.zoom = currentZoom;
+            camera.updateProjectionMatrix();
+
+            const radius = 140;
+            const camX = cameraTarget.x + radius * Math.sin(currentRotation.y) * Math.cos(currentRotation.x);
+            const camY = cameraTarget.y + radius * Math.sin(currentRotation.x);
+            const camZ = cameraTarget.z + radius * Math.cos(currentRotation.y) * Math.cos(currentRotation.x);
+
+            camera.position.set(camX, camY, camZ);
+            camera.up.set(Math.sin(currentCameraRoll), Math.cos(currentCameraRoll), 0).normalize();
+            camera.lookAt(cameraTarget);
+
+            // Update Each Escher Cube Node (Assembly, Scroll Reveal, Upright Flip Glide, Showcase Spin, Edge Fade)
+            cubeNodes.forEach((cn) => {
+                if (!cn.isUnlocked && scrollOffset >= cn.scrollThreshold) {
+                    cn.isUnlocked = true;
+                }
+
+                if (cn.isUnlocked) {
+                    if (cn.assemblyDelay > 0) {
+                        cn.assemblyDelay = Math.max(0, cn.assemblyDelay - 0.016);
+                    } else if (cn.assemblyProgress < 1) {
+                        cn.assemblyProgress = Math.min(1, cn.assemblyProgress + 0.036);
+                    }
+                }
+
+                // Cubic ease-out for crisp architectural locking
+                const ease = 1 - Math.pow(1 - cn.assemblyProgress, 3);
+
+                // Smoothly glide base lattice position (e.g. during Invert or Flip L/R)
+                cn.currentBasePos.lerp(cn.targetPos, 0.09);
+                cn.focusOffset.lerp(cn.targetFocusOffset, 0.09);
+
+                const assembledPos = new THREE.Vector3().lerpVectors(cn.startPos, cn.currentBasePos, ease);
+                cn.group.position.copy(assembledPos).add(cn.focusOffset);
+
+                const s = Math.max(0.001, ease);
+                cn.group.scale.set(s, s, s);
+
+                // Spin with smooth deceleration + drag inertia
+                if (Math.abs(cn.spinVelocityY) > 0.0005) {
+                    cn.targetSpinY += cn.spinVelocityY;
+                    cn.spinVelocityY *= 0.92;
+                } else {
+                    cn.spinVelocityY = 0;
+                }
+                cn.spinY += (cn.targetSpinY - cn.spinY) * 0.085;
+                cn.spinX += (cn.targetSpinX - cn.spinX) * 0.085;
+                cn.group.rotation.y = cn.spinY;
+                cn.group.rotation.x = cn.spinX;
+
+                // Unfold / collapse lower real sub-cube
+                if (cn.realSubGroup.visible) {
+                    cn.realSubGroup.scale.lerp(new THREE.Vector3(1, 1, 1), 0.11);
+                } else {
+                    cn.realSubGroup.scale.lerp(new THREE.Vector3(0.001, 0.001, 0.001), 0.16);
+                }
+
+                // Soft vertical edge fade + active showcase dimming
+                cn.dimFactor += (cn.targetDimFactor - cn.dimFactor) * 0.1;
+                const worldP = new THREE.Vector3();
+                cn.group.getWorldPosition(worldP);
+                const ndc = worldP.project(camera);
+                let edgeFade = 1.0;
+                if (activeProjectIndex === -1 && Math.abs(ndc.y) > 0.88) {
+                    edgeFade = Math.max(0.22, 1.0 - (Math.abs(ndc.y) - 0.88) * 2.4);
+                }
+                const finalOpacityMult = cn.dimFactor * edgeFade;
+
+                cn.outlineMesh.material.opacity = 0.94 * finalOpacityMult;
+                if (Array.isArray(cn.fadeMaterials)) {
+                    cn.fadeMaterials.forEach(m => {
+                        const baseOp = m.userData ? m.userData.baseOpacity : 0.95;
+                        m.opacity = baseOp * finalOpacityMult;
+                    });
+                }
+                if (Array.isArray(cn.wallMesh.material)) {
+                    cn.wallMesh.material.forEach(m => {
+                        const baseOp = m.userData ? m.userData.baseOpacity : 0.2;
+                        m.opacity = baseOp * finalOpacityMult;
+                    });
+                }
+            });
+
+            // Show Upside-Down Bottom Mirrored Header only when scrolled to the bottom of the portfolio cubes
+            const bottomMirror = document.getElementById('bottom-mirrored-header');
+            if (bottomMirror) {
+                const showBottomMirror = activeProjectIndex === -1 && scrollOffset >= 0.82;
+                bottomMirror.style.opacity = showBottomMirror ? '0.92' : '0';
+                bottomMirror.style.pointerEvents = showBottomMirror ? 'auto' : 'none';
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Hydrate exported standalone data if present, then launch Three.js scene on load
+        window.onload = function () {
+            if (window.__EXPORTED_IDENTITY__) {
+                portfolioIdentity = window.__EXPORTED_IDENTITY__;
+                updateIdentityDisplay();
+            }
+            if (Array.isArray(window.__EXPORTED_PROJECTS__) && window.__EXPORTED_PROJECTS__.length > 0) {
+                portfolioProjects = window.__EXPORTED_PROJECTS__;
+            }
+            init();
+        };
+    </script>
+</body>
+</html>
