@@ -34,8 +34,11 @@
     <meta name="twitter:image" content="https://kai4avaya.github.io/cube-folio/og-image.png">
     <meta name="twitter:image:alt" content="Cubic Portfolio — Kai Kleinbard interactive 3D isometric Escher cube lattice">
 
-    <!-- Isometric Cube Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpolygon points='32,6 56,20 32,34 8,20' fill='%231d4ed8'/%3E%3Cpolygon points='8,20 32,34 32,58 8,44' fill='%231e3a8a'/%3E%3Cpolygon points='56,20 32,34 32,58 56,44' fill='%233b82f6'/%3E%3C/svg%3E">
+    <!-- High-Contrast White KAI Browser Tab Icons (SVG + PNG + Apple Touch) -->
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+    <link rel="shortcut icon" href="./favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
 
     <!-- Structured Data (JSON-LD) for Search Discovery -->
     <script type="application/ld+json">
@@ -81,7 +84,10 @@
             padding: 0;
             width: 100%;
             height: 100%;
+            height: 100dvh;
             overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
             background-color: var(--bg-primary);
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
@@ -93,17 +99,20 @@
         .brutalist-font {
             font-family: 'Space Grotesk', 'Inter', sans-serif;
             letter-spacing: -0.055em;
-            line-height: 0.84;
+            line-height: 0.86;
             font-weight: 900;
-            font-size: clamp(3.4rem, 7.6vw, 8.2rem);
+            font-size: clamp(2.25rem, 7.6vw, 8.2rem);
         }
         #canvas-container {
             position: fixed;
             inset: 0;
             width: 100%;
             height: 100%;
+            height: 100dvh;
             z-index: 1;
             cursor: grab;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
         }
         #canvas-container:active {
             cursor: grabbing;
@@ -238,13 +247,71 @@
             opacity: 1;
             margin-bottom: 10px;
         }
-        /* Custom scrollbar for studio drawer */
+        /* Custom scrollbar (Chrome, Safari, Edge, Firefox) */
+        .custom-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(120, 113, 108, 0.45) transparent;
+            -webkit-overflow-scrolling: touch;
+        }
         .custom-scroll::-webkit-scrollbar {
             width: 5px;
         }
         .custom-scroll::-webkit-scrollbar-thumb {
             background: rgba(120, 113, 108, 0.4);
             border-radius: 9999px;
+        }
+        /* Mobile-First Responsive Layout: Bottom-Sheet Dossier + Thumb-Reachable Settings */
+        @media (max-width: 767px) {
+            #project-inspector {
+                top: auto !important;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100% !important;
+                height: 54dvh;
+                border-left: none;
+                border-top: 2px solid rgba(28, 25, 23, 0.22);
+                border-radius: 18px 18px 0 0;
+                padding: 14px 16px max(14px, env(safe-area-inset-bottom)) 16px;
+            }
+            body.obsidian-mode #project-inspector {
+                border-left: none;
+                border-top: 2px solid rgba(96, 165, 250, 0.35);
+            }
+            #project-inspector.mobile-expanded {
+                height: 86dvh;
+            }
+            #project-inspector.inspector-hidden {
+                transform: translateY(106%);
+            }
+            #left-cube-callouts {
+                top: 0;
+                bottom: auto;
+                height: 46dvh;
+                padding: 12px 14px;
+            }
+            #left-cube-callouts.callouts-hidden {
+                transform: translateY(-16px);
+            }
+            body.inspector-open-mobile #settings-panel-wrapper {
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(20px);
+            }
+        }
+        @media (max-width: 639px) {
+            #settings-panel-wrapper {
+                top: auto !important;
+                bottom: max(14px, env(safe-area-inset-bottom)) !important;
+                left: 14px !important;
+                right: 14px !important;
+                max-width: none !important;
+            }
+            #studio-drawer {
+                width: 100% !important;
+                height: 100dvh;
+                padding-bottom: max(16px, env(safe-area-inset-bottom));
+            }
         }
     </style>
 </head>
@@ -428,10 +495,10 @@
             </div>
         </div>
 
-        <!-- Left-Side Dual-Cube Architectural Spec Callouts (Appears around the left-shifted cube on zoom) -->
-        <div id="left-cube-callouts" class="callouts-hidden fixed inset-y-0 left-0 w-full md:w-[54%] z-20 pointer-events-none flex flex-col justify-between p-5 sm:p-8">
+        <!-- Left-Side Dual-Cube Architectural Spec Callouts (Top-Half on Mobile, Left-Half on Desktop) -->
+        <div id="left-cube-callouts" class="callouts-hidden fixed inset-y-0 left-0 w-full md:w-[54%] z-20 pointer-events-none flex flex-col justify-between p-4 sm:p-8">
             <!-- Top Spacer below main header -->
-            <div class="mt-24 sm:mt-28 flex items-center gap-3">
+            <div class="mt-2 md:mt-28 flex items-center gap-3">
                 <div class="glass-pill px-3 py-1.5 rounded-md border-l-4 border-l-blue-700 flex items-center gap-2.5">
                     <span class="w-2 h-2 rounded-full bg-blue-700 animate-pulse"></span>
                     <span id="left-active-code" class="mono text-[10px] font-bold uppercase tracking-widest">ISO-CUTAWAY // DRAG CUBE TO SPIN 360°</span>
@@ -483,14 +550,15 @@
         <aside id="project-inspector" class="inspector-hidden fixed top-0 right-0 h-full w-full md:w-[46%] lg:w-[44%] z-30 glass-pill p-5 sm:p-7 flex flex-col justify-between interactive overflow-hidden shadow-2xl">
             <!-- Top Navigation Bar inside Right Panel -->
             <div class="flex items-center justify-between gap-2 pb-4 border-b border-stone-400/40 dark:border-blue-900/30">
-                <div class="flex items-center gap-2">
-                    <span id="inspector-order" class="mono text-[11px] font-extrabold uppercase px-2.5 py-1 rounded bg-blue-700 text-white">CUBE #01</span>
-                    <span id="inspector-tag" class="mono text-[10px] font-bold uppercase tracking-widest text-blue-800 dark:text-blue-300">PORTFOLIO CORE</span>
+                <div class="flex items-center gap-2 min-w-0">
+                    <span id="inspector-order" class="mono text-[11px] font-extrabold uppercase px-2.5 py-1 rounded bg-blue-700 text-white whitespace-nowrap shrink-0">CUBE #01</span>
+                    <span id="inspector-tag" class="mono text-[10px] font-bold uppercase tracking-widest text-blue-800 dark:text-blue-300 truncate">PORTFOLIO CORE</span>
                 </div>
-                <div class="flex items-center gap-1.5">
-                    <button id="prev-cube-btn" class="ctrl-btn" title="Slide to Previous Project Cube">← Prev</button>
-                    <button id="next-cube-btn" class="ctrl-btn" title="Slide to Next Project Cube">Next →</button>
-                    <button id="close-inspector-btn" class="px-3 py-1.5 rounded-md bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 mono text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700 hover:text-white transition cursor-pointer">
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button id="mobile-expand-sheet-btn" class="ctrl-btn md:hidden" title="Expand or Split Mobile Dossier">Expand ⌃</button>
+                    <button id="prev-cube-btn" class="ctrl-btn hidden sm:inline-flex" title="Slide to Previous Project Cube">← Prev</button>
+                    <button id="next-cube-btn" class="ctrl-btn hidden sm:inline-flex" title="Slide to Next Project Cube">Next →</button>
+                    <button id="close-inspector-btn" class="px-3 py-1.5 rounded-md bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 mono text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700 hover:text-white transition cursor-pointer whitespace-nowrap">
                         Lattice ✕
                     </button>
                 </div>
@@ -1157,11 +1225,10 @@
             );
 
             const isMobile = window.innerWidth < 768;
-            // Shift camera lookAt to the right along camRight so the cube renders at ~28% from the left screen edge,
-            // completely clear of the right-side dossier panel (which occupies the right 44%-46% of the viewport)
+            // Desktop: shift camera lookAt right so cube sits centered in the left 54% clear of the right panel.
+            // Mobile: shift camera lookAt down along camUp so the active dual-cube sits centered in the upper 46% above the bottom sheet.
             const rightShiftUnits = isMobile ? 0 : visibleWidth * 0.225;
-            // Shift camera lookAt slightly down along camUp so both the upper 3D cube and lower unfolded sub-cube are vertically centered
-            const downShiftUnits = -visibleHeight * 0.09;
+            const downShiftUnits = isMobile ? -visibleHeight * 0.29 : -visibleHeight * 0.09;
 
             return cubeWorldPos
                 .addScaledVector(camRight, rightShiftUnits)
@@ -1919,7 +1986,7 @@
                 preserveDrawingBuffer: true
             });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 768 ? 1.75 : 2));
             container.appendChild(renderer.domElement);
 
             raycaster = new THREE.Raycaster();
@@ -2708,14 +2775,19 @@
             const isMobile = window.innerWidth < 768;
             const aspect = window.innerWidth / Math.max(1, window.innerHeight);
             const frustumSize = camera ? camera.userData.frustumSize : 26;
-            // Ensure zoom level always leaves generous horizontal clearance in the left half of the viewport
-            const maxSafeLeftZoom = isMobile ? 1.45 : Math.max(1.2, (frustumSize * aspect * 0.23) / 3.9);
-            targetZoom = Math.min(getResponsiveBaseZoom() * (isMobile ? 1.18 : 1.26), maxSafeLeftZoom);
+            // Desktop: ensure horizontal clearance in left half; Mobile: ensure dual-cube fits cleanly in upper 46% above bottom sheet
+            const maxSafeLeftZoom = isMobile
+                ? Math.min(1.38, Math.max(0.85, (frustumSize * aspect * 0.44) / 3.4))
+                : Math.max(1.2, (frustumSize * aspect * 0.23) / 3.9);
+            targetZoom = isMobile
+                ? maxSafeLeftZoom
+                : Math.min(getResponsiveBaseZoom() * 1.26, maxSafeLeftZoom);
 
             const activeCubePos = node.targetPos.clone().add(showcasePopOffset);
             targetLookAt.copy(getLeftShowcaseCameraTarget(activeCubePos, targetZoom));
 
             populateRightDossierPanel(node, index);
+            document.body.classList.add('inspector-open-mobile');
             document.getElementById('project-inspector').classList.remove('inspector-hidden');
             document.getElementById('left-cube-callouts').classList.remove('callouts-hidden');
         }
@@ -2740,7 +2812,12 @@
             // Step 1: Slide right panel out & hide left callouts
             const rawVideo = document.getElementById('inspector-raw-video');
             if (rawVideo) rawVideo.pause();
-            document.getElementById('project-inspector').classList.add('inspector-hidden');
+            document.body.classList.remove('inspector-open-mobile');
+            const inspectorEl = document.getElementById('project-inspector');
+            inspectorEl.classList.remove('mobile-expanded');
+            inspectorEl.classList.add('inspector-hidden');
+            const expandBtn = document.getElementById('mobile-expand-sheet-btn');
+            if (expandBtn) expandBtn.textContent = 'Expand ⌃';
             document.getElementById('left-cube-callouts').classList.add('callouts-hidden');
 
             // Slide and spin current cube back into its original lattice coordinate
@@ -2801,7 +2878,12 @@
 
             const rawVideo = document.getElementById('inspector-raw-video');
             if (rawVideo) rawVideo.pause();
-            document.getElementById('project-inspector').classList.add('inspector-hidden');
+            document.body.classList.remove('inspector-open-mobile');
+            const inspectorEl = document.getElementById('project-inspector');
+            inspectorEl.classList.remove('mobile-expanded');
+            inspectorEl.classList.add('inspector-hidden');
+            const expandBtn = document.getElementById('mobile-expand-sheet-btn');
+            if (expandBtn) expandBtn.textContent = 'Expand ⌃';
             document.getElementById('left-cube-callouts').classList.add('callouts-hidden');
         }
 
@@ -3034,7 +3116,13 @@
                     inputEl.value = shareUrl;
                     boxEl.classList.remove('hidden');
                     inputEl.select();
-                    document.execCommand('copy');
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(shareUrl).catch(() => {
+                            try { document.execCommand('copy'); } catch (_) {}
+                        });
+                    } else {
+                        try { document.execCommand('copy'); } catch (_) {}
+                    }
                 }
                 showToast('SHAREABLE PORTFOLIO URL COPIED');
             } catch (err) {
@@ -3147,16 +3235,46 @@
                 }
             });
 
-            // Mouse / Pointer Orbit & Cube Drag-to-Spin
+            // Multi-Touch Pinch-to-Zoom, Mobile Touch Scroll/Orbit, & Desktop Pointer Orbit / Cube Drag-to-Spin
+            const activePointers = new Map();
+            let lastPinchDist = null;
+            let activeDragPointerId = null;
+
             container.addEventListener('pointerdown', (e) => {
-                isDragging = true;
-                pointerDownPos = { x: e.clientX, y: e.clientY };
-                previousMousePosition = { x: e.clientX, y: e.clientY };
-                container.style.cursor = 'grabbing';
+                activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY, type: e.pointerType });
+                if (activePointers.size === 1) {
+                    isDragging = true;
+                    activeDragPointerId = e.pointerId;
+                    pointerDownPos = { x: e.clientX, y: e.clientY };
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                    container.style.cursor = 'grabbing';
+                } else if (activePointers.size === 2) {
+                    isDragging = false;
+                    activeDragPointerId = null;
+                    const pts = Array.from(activePointers.values());
+                    lastPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+                }
             });
 
             window.addEventListener('pointermove', (e) => {
-                if (isDragging) {
+                if (activePointers.has(e.pointerId)) {
+                    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY, type: e.pointerType });
+                }
+
+                // 2-finger pinch-to-zoom on touch screens
+                if (activePointers.size === 2) {
+                    const pts = Array.from(activePointers.values());
+                    const curDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+                    if (lastPinchDist !== null && lastPinchDist > 10) {
+                        const scaleRatio = curDist / lastPinchDist;
+                        targetZoom = Math.max(0.65, Math.min(2.6, targetZoom * scaleRatio));
+                    }
+                    lastPinchDist = curDist;
+                    hideHoverCallout();
+                    return;
+                }
+
+                if (isDragging && (activeDragPointerId === null || e.pointerId === activeDragPointerId)) {
                     const dx = e.clientX - previousMousePosition.x;
                     const dy = e.clientY - previousMousePosition.y;
                     previousMousePosition = { x: e.clientX, y: e.clientY };
@@ -3167,25 +3285,44 @@
                         node.targetSpinY += dx * 0.012;
                         node.spinVelocityY = dx * 0.004;
                         node.targetSpinX = Math.max(-0.55, Math.min(0.55, node.targetSpinX + dy * 0.008));
+                    } else if (e.pointerType === 'touch') {
+                        // Mobile touch browsing: vertical swipe descends/ascends through all 18 cubes,
+                        // horizontal swipe gently orbits the Escher lattice!
+                        const scrollDelta = -dy * 0.0018;
+                        targetScrollOffset = Math.max(0, Math.min(1, targetScrollOffset + scrollDelta));
+                        if (scrollDelta > 0.002 && targetScrollOffset > 0.04) {
+                            setMainHeaderVisibility(false);
+                        } else if (scrollDelta < -0.002 || targetScrollOffset <= 0.03) {
+                            setMainHeaderVisibility(true);
+                        }
+                        targetLookAt.copy(getScrollSpineTarget(targetScrollOffset));
+                        targetRotation.y -= dx * 0.004;
+                        hideHoverCallout();
                     } else {
-                        // Subtle isometric orbit when browsing full lattice
+                        // Desktop mouse drag: smooth isometric orbit when browsing full lattice
                         targetRotation.y -= dx * 0.0055;
                         targetRotation.x = Math.max(0.18, Math.min(1.15, targetRotation.x + dy * 0.0045));
                         hideHoverCallout();
                     }
-                } else {
+                } else if (e.pointerType !== 'touch') {
                     updateHoverLeaderCallout(e.clientX, e.clientY);
                 }
             });
 
-            window.addEventListener('pointerup', (e) => {
-                if (!isDragging) return;
+            const finishPointer = (e, allowClick) => {
+                const wasDraggingThis = isDragging && (activeDragPointerId === null || e.pointerId === activeDragPointerId);
+                activePointers.delete(e.pointerId);
+                if (activePointers.size < 2) lastPinchDist = null;
+                if (!wasDraggingThis) return;
+
                 isDragging = false;
+                activeDragPointerId = null;
                 container.style.cursor = 'grab';
 
+                if (!allowClick) return;
+                const tapThreshold = e.pointerType === 'touch' ? 14 : 6;
                 const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
-                if (dist < 6) {
-                    // Click detected: check if user clicked on a cube
+                if (dist < tapThreshold) {
                     const rect = renderer.domElement.getBoundingClientRect();
                     mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
                     mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -3206,32 +3343,50 @@
                         closeProjectInspector();
                     }
                 }
-            });
+            };
 
-            // Wheel Scroll: Descend through Escher lattice, progressively unlock cubes, fade main header, dismiss descriptions
+            window.addEventListener('pointerup', (e) => finishPointer(e, true));
+            window.addEventListener('pointercancel', (e) => finishPointer(e, false));
+
+            // Wheel Scroll (Cross-browser normalized for Firefox deltaMode=LINE/PAGE + Chrome/Safari pixel deltas)
             window.addEventListener('wheel', (e) => {
                 const studioOpen = !document.getElementById('studio-drawer').classList.contains('drawer-closed');
                 const lightboxOpen = !document.getElementById('lightbox-modal').classList.contains('hidden');
                 if (studioOpen || lightboxOpen) return;
 
-                if (e.target.closest('#project-inspector')) return;
+                if (e.target && e.target.closest && e.target.closest('#project-inspector')) return;
 
                 if (activeProjectIndex !== -1) {
                     closeProjectInspector();
                 }
                 hideHoverCallout();
 
-                const delta = e.deltaY * 0.00055;
+                // Normalize wheel delta across Firefox (DOM_DELTA_LINE=1 / PAGE=2) and Chrome/Safari (PIXEL=0)
+                let normDeltaY = e.deltaY;
+                if (e.deltaMode === 1) normDeltaY *= 32;
+                else if (e.deltaMode === 2) normDeltaY *= window.innerHeight;
+
+                const delta = normDeltaY * 0.00055;
                 targetScrollOffset = Math.max(0, Math.min(1, targetScrollOffset + delta));
 
-                if (e.deltaY > 2 && targetScrollOffset > 0.04) {
+                if (normDeltaY > 2 && targetScrollOffset > 0.04) {
                     setMainHeaderVisibility(false);
-                } else if (e.deltaY < -2 || targetScrollOffset <= 0.03) {
+                } else if (normDeltaY < -2 || targetScrollOffset <= 0.03) {
                     setMainHeaderVisibility(true);
                 }
 
                 targetLookAt.copy(getScrollSpineTarget(targetScrollOffset));
             }, { passive: true });
+
+            // Mobile Bottom-Sheet Expand / Split Toggle
+            const mobileExpandBtn = document.getElementById('mobile-expand-sheet-btn');
+            if (mobileExpandBtn) {
+                mobileExpandBtn.addEventListener('click', () => {
+                    const panel = document.getElementById('project-inspector');
+                    const expanded = panel.classList.toggle('mobile-expanded');
+                    mobileExpandBtn.textContent = expanded ? 'Split ⌄' : 'Expand ⌃';
+                });
+            }
 
             // Settings Panel Smooth Accordion Toggle
             const toggleSettings = () => {
