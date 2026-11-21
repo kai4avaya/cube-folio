@@ -251,6 +251,127 @@
             color: #93c5fd;
             background: rgba(96, 165, 250, 0.18);
         }
+        /* Readable List Flow Mode Toggle & Synchronized Description Cards */
+        #toggle-list-mode-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 22px;
+            border-radius: 5px;
+            opacity: 0.78;
+            transition: background-color 0.16s ease, color 0.16s ease, opacity 0.16s ease;
+            cursor: pointer;
+        }
+        #toggle-list-mode-btn:hover {
+            opacity: 1;
+            background: rgba(120, 113, 108, 0.16);
+        }
+        #toggle-list-mode-btn.list-mode-active {
+            opacity: 1;
+            background: #1d4ed8;
+            color: #ffffff;
+        }
+        #list-flow-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 8;
+            pointer-events: none;
+            overflow: hidden;
+            transition: opacity 0.28s ease;
+        }
+        #list-flow-overlay.list-overlay-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .list-flow-card {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: auto;
+            cursor: pointer;
+            border-radius: 12px;
+            background: rgba(247, 245, 240, 0.90);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(28, 25, 23, 0.16);
+            box-shadow: 4px 4px 0px rgba(20, 20, 19, 0.08);
+            color: #141413;
+            padding: 16px 20px;
+            will-change: transform, opacity;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+            touch-action: none;
+        }
+        .list-flow-card::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            width: 18px;
+            height: 1.5px;
+            background: rgba(29, 78, 216, 0.55);
+            pointer-events: none;
+        }
+        .list-flow-card::after {
+            content: '';
+            position: absolute;
+            left: -23px;
+            top: calc(50% - 2.5px);
+            width: 6px;
+            height: 6px;
+            border-radius: 9999px;
+            background: #1d4ed8;
+            pointer-events: none;
+        }
+        .list-flow-card:hover,
+        .list-flow-card.is-cube-hovered {
+            border-color: #1d4ed8;
+            background: rgba(252, 250, 246, 0.98);
+            box-shadow: 6px 6px 0px rgba(29, 78, 216, 0.18);
+        }
+        body.obsidian-mode .list-flow-card {
+            background: rgba(22, 22, 26, 0.88);
+            border-color: rgba(147, 197, 253, 0.22);
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.52);
+            color: #f5f5f4;
+        }
+        body.obsidian-mode .list-flow-card:hover,
+        body.obsidian-mode .list-flow-card.is-cube-hovered {
+            border-color: #60a5fa;
+            background: rgba(28, 30, 38, 0.96);
+            box-shadow: 6px 6px 0px rgba(59, 130, 246, 0.28);
+        }
+        body.obsidian-mode .list-flow-card::before {
+            background: rgba(96, 165, 250, 0.6);
+        }
+        body.obsidian-mode .list-flow-card::after {
+            background: #60a5fa;
+        }
+        .list-flow-desc {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        @media (max-width: 767px) {
+            .list-flow-card {
+                padding: 11px 13px;
+                border-radius: 10px;
+            }
+            .list-flow-card::before {
+                left: -10px;
+                width: 9px;
+            }
+            .list-flow-card::after {
+                left: -12px;
+                width: 4px;
+                height: 4px;
+                top: calc(50% - 2px);
+            }
+            .list-flow-desc {
+                -webkit-line-clamp: 2;
+            }
+        }
         /* Split-Screen Right Architectural Dossier Panel */
         #project-inspector {
             background: rgba(243, 240, 233, 0.96);
@@ -363,6 +484,15 @@
     <!-- 3D WebGL Viewport -->
     <div id="canvas-container"></div>
 
+    <!-- Synchronized Readable List Flow Overlay (Deconstructed Cube Resume Mode) -->
+    <div id="list-flow-overlay" class="list-overlay-hidden" aria-hidden="true"></div>
+    <div id="list-flow-progress" class="hidden fixed right-4 top-1/2 -translate-y-1/2 z-20 pointer-events-none flex-col items-center gap-2">
+        <div class="w-1 h-28 sm:h-36 rounded-full bg-stone-500/20 overflow-hidden relative">
+            <div id="list-flow-thumb" class="w-full h-7 rounded-full bg-blue-700 transition-transform duration-100" style="transform: translateY(0px);"></div>
+        </div>
+        <span id="list-flow-counter" class="mono text-[9px] font-bold uppercase opacity-65">01/20</span>
+    </div>
+
     <!-- Dynamic Hover SVG Leader Line & Callout Overlay -->
     <svg id="hover-svg" class="fixed inset-0 w-full h-full pointer-events-none z-20 hidden">
         <polyline id="hover-leader-line" fill="none" stroke="#1d4ed8" stroke-width="1.8" stroke-dasharray="4 3" points="0,0 0,0 0,0" />
@@ -441,9 +571,16 @@
                         </svg>
                         <span>SETTINGS</span>
                     </button>
-                    <button id="toggle-panel-size-btn" class="mono text-[10px] font-bold opacity-75 hover:opacity-100 px-1.5 py-0.5 rounded hover:bg-stone-500/10" title="Expand / Minimize Settings">
-                        [+]
-                    </button>
+                    <div class="flex items-center gap-1">
+                        <button id="toggle-list-mode-btn" type="button" title="Deconstruct Cubes into Readable List Flow" aria-label="Toggle Readable List View">
+                            <svg id="list-mode-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 6h16M4 12h16M4 18h16"/>
+                            </svg>
+                        </button>
+                        <button id="toggle-panel-size-btn" class="mono text-[10px] font-bold opacity-75 hover:opacity-100 px-1.5 py-0.5 rounded hover:bg-stone-500/10" title="Expand / Minimize Settings">
+                            [+]
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Collapsible Settings Options + Distinct Share & Export Section -->
@@ -937,6 +1074,14 @@
         let cubeNodes = []; // Holds 3D Group & metadata for each Escher project cube
         let currentLatticeSlots = []; // Active honeycomb (a, b) slots for real-time drag-to-flip reordering
         let draggingProjectId = null; // Tracks project ID currently dragged in Studio list
+
+        // Readable List Flow Mode State (Deconstructs Escher Cubes into Left Column + Right Description Flow)
+        let isListViewMode = false;
+        let listScrollY = 0;
+        let targetListScrollY = 0;
+        let listFlowCards = [];
+        let listHoveredIndex = -1;
+        let listOverlayFade = 0;
 
         const container = document.getElementById('canvas-container');
         const toast = document.getElementById('toast');
@@ -2486,6 +2631,10 @@
         // Keeps every individual cube 100% right-side up so its open cutaway interior is always clearly visible.
         function updateLatticePositionsForFlipState(animateSpin = true) {
             if (cubeNodes.length === 0) return;
+            if (isListViewMode) {
+                applyListFlowCubePositions(animateSpin);
+                return;
+            }
             const cubeSize = 4.8;
 
             const maxRow = Math.max(...cubeNodes.map(cn => cn.baseAB.a + cn.baseAB.b));
@@ -2740,8 +2889,386 @@
                 cubeNodes.forEach(cn => cn.currentBasePos.copy(cn.targetPos));
             }
 
-            if (activeProjectIndex === -1) {
+            renderListFlowCards();
+            if (isListViewMode) {
+                applyListFlowCubePositions(false);
+                cubeNodes.forEach(cn => cn.currentBasePos.copy(cn.targetPos));
+                if (activeProjectIndex === -1) {
+                    const m = getListFlowMetrics();
+                    targetZoom = m.zoom;
+                    targetLookAt.copy(getListFlowCameraTarget(targetListScrollY));
+                }
+            } else if (activeProjectIndex === -1) {
                 targetLookAt.copy(getScrollSpineTarget(scrollOffset));
+            }
+        }
+
+        // --- Readable List Flow Mode Engine (Deconstructs Escher Cubes to Left Column + Right Descriptions) ---
+        function getIsoCameraBasis(rotX = DEFAULT_ROT_X, rotY = DEFAULT_ROT_Y, roll = 0) {
+            const eyeDir = new THREE.Vector3(
+                Math.sin(rotY) * Math.cos(rotX),
+                Math.sin(rotX),
+                Math.cos(rotY) * Math.cos(rotX)
+            ).normalize();
+            const forward = eyeDir.clone().negate();
+            const upVec = new THREE.Vector3(Math.sin(roll), Math.cos(roll), 0).normalize();
+            const camRight = new THREE.Vector3().crossVectors(forward, upVec).normalize();
+            const camUp = new THREE.Vector3().crossVectors(camRight, forward).normalize();
+            return { eyeDir, forward, camRight, camUp };
+        }
+
+        function getListFlowMetrics() {
+            const w = window.innerWidth;
+            const h = Math.max(1, window.innerHeight);
+            const aspect = w / h;
+            const frustumSize = camera ? camera.userData.frustumSize : 26;
+            const isMobile = w < 768;
+
+            // Size cubes cleanly in a left column so descriptions on the right are crisp & easy to read
+            const zoom = isMobile
+                ? Math.min(0.66, Math.max(0.48, (frustumSize * aspect * 0.33) / 6.79))
+                : (w >= 1400 ? 0.78 : 0.72);
+
+            const visibleWidth = (frustumSize * aspect) / zoom;
+            const visibleHeight = frustumSize / zoom;
+            const rowSpacing = isMobile ? 9.6 : 9.4;
+
+            const contentWidthPx = isMobile ? w - 20 : Math.min(1120, w - 84);
+            const contentLeftPx = (w - contentWidthPx) / 2;
+            const cubeVisualWidthPx = (6.79 / visibleWidth) * w;
+            const cubeCenterPx = isMobile
+                ? Math.max(cubeVisualWidthPx * 0.50 + 8, w * 0.185)
+                : contentLeftPx + cubeVisualWidthPx * 0.52 + 6;
+
+            const cubeOffsetRight = ((cubeCenterPx / w) - 0.5) * visibleWidth;
+            // Anchor row #01 comfortably beneath the top KAI KLEINBARD header & upper-right settings bar
+            const topCenterOffsetUp = isMobile ? visibleHeight * 0.19 : visibleHeight * 0.13;
+
+            const cardLeftPx = Math.round(cubeCenterPx + cubeVisualWidthPx * 0.55 + (isMobile ? 10 : 28));
+            const cardRightPadPx = isMobile ? 14 : Math.max(36, Math.round(contentLeftPx));
+            const cardWidthPx = Math.max(185, Math.min(isMobile ? 360 : 630, w - cardLeftPx - cardRightPadPx));
+
+            return {
+                zoom,
+                visibleWidth,
+                visibleHeight,
+                rowSpacing,
+                cubeOffsetRight,
+                topCenterOffsetUp,
+                cardLeftPx,
+                cardWidthPx,
+                isMobile
+            };
+        }
+
+        function getMaxListScrollY() {
+            if (cubeNodes.length <= 1) return 0;
+            const m = getListFlowMetrics();
+            return Math.max(0, (cubeNodes.length - 1) * m.rowSpacing - m.visibleHeight * 0.12);
+        }
+
+        function getListFlowCameraTarget(scrollYUnits) {
+            const { camUp } = getIsoCameraBasis(DEFAULT_ROT_X, DEFAULT_ROT_Y, 0);
+            const m = getListFlowMetrics();
+            // Position lookAt so Row 0 sits at +topCenterOffsetUp when scrollYUnits == 0
+            return new THREE.Vector3(0, 0, 0)
+                .addScaledVector(camUp, -m.topCenterOffsetUp - scrollYUnits);
+        }
+
+        function getListFlowCubePosition(index) {
+            const { camRight, camUp } = getIsoCameraBasis(DEFAULT_ROT_X, DEFAULT_ROT_Y, 0);
+            const m = getListFlowMetrics();
+            const visualIndex = isInvertedWorld ? (cubeNodes.length - 1 - index) : index;
+            return new THREE.Vector3(0, 0, 0)
+                .addScaledVector(camRight, m.cubeOffsetRight)
+                .addScaledVector(camUp, -visualIndex * m.rowSpacing);
+        }
+
+        function applyListFlowCubePositions(animateDeconstruct = true) {
+            if (cubeNodes.length === 0) return;
+            cubeNodes.forEach((cn, idx) => {
+                // Unlock all cubes smoothly so the entire 20-project vertical flow is immediately scrollable
+                if (!cn.isUnlocked || cn.assemblyProgress < 0.99) {
+                    if (cn.assemblyProgress === 0) {
+                        cn.currentBasePos.copy(cn.targetPos);
+                    }
+                    cn.isUnlocked = true;
+                    cn.assemblyDelay = 0;
+                    cn.assemblyProgress = 1;
+                }
+
+                const destPos = getListFlowCubePosition(idx);
+                cn.targetPos.copy(destPos);
+                if (activeProjectIndex !== idx) {
+                    cn.targetFocusOffset.set(0, 0, 0);
+                }
+
+                if (animateDeconstruct) {
+                    const baseTurns = Math.round(cn.spinY / (Math.PI * 2)) * (Math.PI * 2);
+                    const dir = idx % 2 === 0 ? 1 : -1;
+                    cn.targetSpinY = baseTurns + dir * Math.PI * 2;
+                    cn.spinX += dir * 0.24;
+                    cn.targetSpinX = 0;
+                    cn.flipBoost = 1.15;
+                }
+            });
+        }
+
+        function setListHoveredIndex(idx) {
+            if (listHoveredIndex === idx) return;
+            listHoveredIndex = idx;
+            const baseHex = isObsidianScheme ? 0x93c5fd : 0x1e3a8a;
+            cubeNodes.forEach((cn, i) => {
+                if (i === activeProjectIndex) return;
+                const isHov = (i === idx && isListViewMode && activeProjectIndex === -1);
+                cn.outlineMesh.material.color.setHex(isHov ? 0x2563eb : baseHex);
+                if (isListViewMode) {
+                    const baseTurns = Math.round(cn.targetSpinY / (Math.PI * 2)) * (Math.PI * 2);
+                    cn.targetSpinY = isHov ? baseTurns + 0.34 : baseTurns;
+                    cn.targetFocusOffset.set(0, isHov ? 0.38 : 0, 0);
+                }
+            });
+            listFlowCards.forEach((card, i) => {
+                card.classList.toggle('is-cube-hovered', i === idx);
+            });
+        }
+
+        function showListFlowOverlay(visible) {
+            const overlay = document.getElementById('list-flow-overlay');
+            const progress = document.getElementById('list-flow-progress');
+            if (overlay) {
+                overlay.classList.toggle('list-overlay-hidden', !visible);
+                overlay.setAttribute('aria-hidden', visible ? 'false' : 'true');
+            }
+            if (progress) {
+                const showProgress = visible && window.innerWidth >= 768;
+                progress.classList.toggle('hidden', !showProgress);
+                progress.classList.toggle('flex', showProgress);
+            }
+            if (!visible) {
+                setListHoveredIndex(-1);
+            }
+        }
+
+        function renderListFlowCards() {
+            const overlay = document.getElementById('list-flow-overlay');
+            if (!overlay) return;
+            overlay.innerHTML = '';
+            listFlowCards = [];
+
+            cubeNodes.forEach((cn, idx) => {
+                const proj = cn.project;
+                const card = document.createElement('article');
+                card.className = 'list-flow-card';
+                card.dataset.index = String(idx);
+                card.style.opacity = '0';
+                card.style.visibility = 'hidden';
+
+                const orderNum = String(proj.order || idx + 1).padStart(2, '0');
+                const badgeExtra = proj.previewVideo
+                    ? '<span class="mono text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-blue-700/15 text-blue-700 dark:text-blue-300">▶ VIDEO</span>'
+                    : (proj.isPrivate
+                        ? '<span class="mono text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-stone-500/15 opacity-75">PRIVATE</span>'
+                        : '');
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="mono text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-blue-700 text-white shrink-0">#${orderNum}</span>
+                            <span class="mono text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300 truncate">${proj.tag}</span>
+                        </div>
+                        ${badgeExtra}
+                    </div>
+                    <h3 class="mono text-sm sm:text-base font-black uppercase tracking-tight leading-snug truncate">${proj.title}</h3>
+                    <p class="list-flow-desc text-[11px] sm:text-xs opacity-80 leading-relaxed mt-1.5">${proj.desc}</p>
+                    <div class="mt-2.5 pt-2 border-t border-stone-400/25 flex items-center justify-between gap-2">
+                        <span class="mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">Open Project Dossier →</span>
+                        <span class="mono text-[9px] uppercase opacity-55 hidden sm:inline">CLICK CARD OR CUBE</span>
+                    </div>
+                `;
+
+                card.addEventListener('pointerenter', (e) => {
+                    if (e.pointerType !== 'touch') setListHoveredIndex(idx);
+                });
+                card.addEventListener('pointerleave', () => {
+                    if (listHoveredIndex === idx) setListHoveredIndex(-1);
+                });
+
+                // Pointer swipe-to-scroll on cards (works cleanly on mobile touch & desktop without blocking tap-to-open!)
+                let cardDownY = 0;
+                let cardDownX = 0;
+                let cardLastY = 0;
+                let cardDragging = false;
+                let cardPointerId = null;
+
+                card.addEventListener('pointerdown', (e) => {
+                    if (e.button !== 0 && e.pointerType === 'mouse') return;
+                    cardPointerId = e.pointerId;
+                    cardDownX = e.clientX;
+                    cardDownY = e.clientY;
+                    cardLastY = e.clientY;
+                    cardDragging = true;
+                    try { card.setPointerCapture(e.pointerId); } catch (_) {}
+                });
+
+                card.addEventListener('pointermove', (e) => {
+                    if (!cardDragging || e.pointerId !== cardPointerId) return;
+                    const dy = e.clientY - cardLastY;
+                    cardLastY = e.clientY;
+                    if (Math.abs(e.clientY - cardDownY) > 6) {
+                        const m = getListFlowMetrics();
+                        const worldPerPx = m.visibleHeight / Math.max(1, window.innerHeight);
+                        targetListScrollY = Math.max(0, Math.min(getMaxListScrollY(), targetListScrollY - dy * worldPerPx * 1.15));
+                        setMainHeaderVisibility(targetListScrollY <= 1.8);
+                        targetLookAt.copy(getListFlowCameraTarget(targetListScrollY));
+                    }
+                });
+
+                const finishCardPointer = (e, allowClick) => {
+                    if (!cardDragging || e.pointerId !== cardPointerId) return;
+                    cardDragging = false;
+                    cardPointerId = null;
+                    try { card.releasePointerCapture(e.pointerId); } catch (_) {}
+                    if (!allowClick) return;
+                    const dist = Math.hypot(e.clientX - cardDownX, e.clientY - cardDownY);
+                    const tapLimit = e.pointerType === 'touch' ? 14 : 8;
+                    if (dist < tapLimit) {
+                        focusOnProjectCube(idx);
+                    }
+                };
+
+                card.addEventListener('pointerup', (e) => finishCardPointer(e, true));
+                card.addEventListener('pointercancel', (e) => finishCardPointer(e, false));
+
+                overlay.appendChild(card);
+                listFlowCards.push(card);
+            });
+        }
+
+        function syncListFlowOverlayPositions() {
+            if (!isListViewMode || activeProjectIndex !== -1) return;
+            const m = getListFlowMetrics();
+            const w = window.innerWidth;
+            const h = Math.max(1, window.innerHeight);
+
+            listOverlayFade += (1 - listOverlayFade) * 0.11;
+
+            const total = cubeNodes.length;
+            const maxScroll = getMaxListScrollY();
+            const pct = maxScroll > 0.001 ? Math.max(0, Math.min(1, listScrollY / maxScroll)) : 0;
+
+            const thumbEl = document.getElementById('list-flow-thumb');
+            const counterEl = document.getElementById('list-flow-counter');
+            if (thumbEl && thumbEl.parentElement) {
+                const trackH = thumbEl.parentElement.clientHeight - thumbEl.clientHeight;
+                thumbEl.style.transform = `translateY(${Math.round(pct * Math.max(0, trackH))}px)`;
+            }
+            if (counterEl && total > 0) {
+                const approxIdx = Math.min(total, Math.max(1, Math.round(pct * (total - 1)) + 1));
+                counterEl.textContent = `${String(approxIdx).padStart(2, '0')}/${String(total).padStart(2, '0')}`;
+            }
+
+            const worldP = new THREE.Vector3();
+            cubeNodes.forEach((cn, idx) => {
+                const card = listFlowCards[idx];
+                if (!card) return;
+
+                cn.group.getWorldPosition(worldP);
+                const ndc = worldP.project(camera);
+                const screenY = (-ndc.y * 0.5 + 0.5) * h;
+
+                if (screenY < -240 || screenY > h + 240) {
+                    card.style.visibility = 'hidden';
+                    card.style.pointerEvents = 'none';
+                    return;
+                }
+
+                // Softly fade cards near top/bottom viewport edge and during initial deconstruct flight
+                let edgeAlpha = 1;
+                if (screenY < 90) edgeAlpha = Math.max(0, (screenY + 40) / 130);
+                else if (screenY > h - 70) edgeAlpha = Math.max(0, (h + 50 - screenY) / 120);
+
+                // Measure how close this cube has glided to its left-column destination
+                const distToTarget = cn.currentBasePos.distanceTo(cn.targetPos);
+                const arrivalAlpha = Math.max(0.15, Math.min(1, 1 - distToTarget / 14));
+                const finalAlpha = Math.max(0, Math.min(1, listOverlayFade * edgeAlpha * arrivalAlpha));
+
+                // Horizontal slide-in eases cleanly as the cube lands on the left
+                const slideX = Math.round((1 - arrivalAlpha) * 28);
+
+                card.style.visibility = finalAlpha > 0.02 ? 'visible' : 'hidden';
+                card.style.pointerEvents = finalAlpha > 0.2 ? 'auto' : 'none';
+                card.style.width = `${m.cardWidthPx}px`;
+                card.style.opacity = finalAlpha.toFixed(3);
+                card.style.transform = `translate3d(${m.cardLeftPx + slideX}px, ${screenY.toFixed(1)}px, 0) translateY(-50%)`;
+            });
+        }
+
+        function setListViewMode(enable, animateTransition = true) {
+            if (isListViewMode === enable) return;
+            isListViewMode = enable;
+
+            const btn = document.getElementById('toggle-list-mode-btn');
+            const icon = document.getElementById('list-mode-icon');
+            if (btn) {
+                btn.classList.toggle('list-mode-active', isListViewMode);
+                btn.title = isListViewMode
+                    ? 'Re-Assemble 3D Escher Cube Lattice'
+                    : 'Deconstruct Cubes into Readable List Flow';
+            }
+            if (icon) {
+                icon.innerHTML = isListViewMode
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM12 12l8-4.5M12 12v9M12 12L4 7.5"/>'
+                    : '<rect x="3" y="4.5" width="3.5" height="3.5" rx="0.6" stroke-width="2"/><rect x="3" y="10.25" width="3.5" height="3.5" rx="0.6" stroke-width="2"/><rect x="3" y="16" width="3.5" height="3.5" rx="0.6" stroke-width="2"/><path stroke-linecap="round" stroke-width="2.1" d="M10 6.25h11M10 12h11M10 17.75h11"/>';
+            }
+
+            if (activeProjectIndex !== -1) {
+                closeProjectInspector();
+            }
+            hideHoverCallout();
+
+            if (isListViewMode) {
+                listOverlayFade = 0;
+                targetListScrollY = 0;
+                listScrollY = 0;
+                const m = getListFlowMetrics();
+                targetRotation.x = DEFAULT_ROT_X;
+                targetRotation.y = DEFAULT_ROT_Y;
+                targetCameraRoll = 0;
+                targetZoom = m.zoom;
+                targetLookAt.copy(getListFlowCameraTarget(0));
+                setMainHeaderVisibility(true);
+
+                if (listFlowCards.length !== cubeNodes.length) {
+                    renderListFlowCards();
+                }
+                applyListFlowCubePositions(animateTransition);
+                showListFlowOverlay(true);
+                showToast('LIST FLOW // DECONSTRUCTED CUBES');
+            } else {
+                showListFlowOverlay(false);
+                targetRotation.x = DEFAULT_ROT_X;
+                targetRotation.y = DEFAULT_ROT_Y;
+                targetZoom = getResponsiveBaseZoom();
+                targetLookAt.copy(getScrollSpineTarget(targetScrollOffset));
+                setMainHeaderVisibility(targetScrollOffset <= 0.05);
+
+                // Smoothly re-assemble every cube back to its exact Escher honeycomb coordinate
+                const maxRow = Math.max(...cubeNodes.map(cn => cn.baseAB.a + cn.baseAB.b));
+                cubeNodes.forEach((cn, idx) => {
+                    const latticePos = computeTransformedLatticePos(cn.baseAB, maxRow);
+                    cn.targetPos.copy(latticePos);
+                    cn.targetFocusOffset.set(0, 0, 0);
+                    if (animateTransition) {
+                        const baseTurns = Math.round(cn.spinY / (Math.PI * 2)) * (Math.PI * 2);
+                        const dir = idx % 2 === 0 ? -1 : 1;
+                        cn.targetSpinY = baseTurns + dir * Math.PI * 2;
+                        cn.spinX += dir * 0.22;
+                        cn.targetSpinX = 0;
+                        cn.flipBoost = 1.15;
+                    }
+                });
+                showToast('ESCHER CUBE LATTICE RESTORED');
             }
         }
 
@@ -2817,7 +3344,13 @@
             node.assemblyProgress = 1;
 
             hideHoverCallout();
+            showListFlowOverlay(false);
             setMainHeaderVisibility(false);
+
+            const closeInspectorBtn = document.getElementById('close-inspector-btn');
+            if (closeInspectorBtn) {
+                closeInspectorBtn.textContent = isListViewMode ? '← List ✕' : 'Lattice ✕';
+            }
 
             // Reset camera angles to crisp upright isometric elevation so cubes are always viewed right-side up
             targetRotation.x = 0.52;
@@ -2938,11 +3471,20 @@
             clearTimeout(transitionTimer);
             isTransitioningNodes = false;
             activeProjectIndex = -1;
-            targetZoom = getResponsiveBaseZoom();
-            targetLookAt.copy(getScrollSpineTarget(scrollOffset));
             targetRotation.x = DEFAULT_ROT_X;
             targetRotation.y = DEFAULT_ROT_Y;
-            setMainHeaderVisibility(scrollOffset <= 0.05);
+
+            if (isListViewMode) {
+                const m = getListFlowMetrics();
+                targetZoom = m.zoom;
+                targetLookAt.copy(getListFlowCameraTarget(targetListScrollY));
+                setMainHeaderVisibility(targetListScrollY <= 1.8);
+                showListFlowOverlay(true);
+            } else {
+                targetZoom = getResponsiveBaseZoom();
+                targetLookAt.copy(getScrollSpineTarget(scrollOffset));
+                setMainHeaderVisibility(scrollOffset <= 0.05);
+            }
 
             cubeNodes.forEach(cn => {
                 cn.realSubGroup.visible = false;
@@ -3005,6 +3547,12 @@
                 const node = cubeNodes[idx];
                 if (!node) return;
 
+                if (isListViewMode) {
+                    container.style.cursor = 'pointer';
+                    setListHoveredIndex(idx);
+                    return;
+                }
+
                 hoveredProjectIndex = idx;
                 container.style.cursor = 'pointer';
 
@@ -3058,7 +3606,12 @@
                 card.style.left = `${cardLeft}px`;
                 card.style.top = `${cardTop}px`;
             } else {
-                hideHoverCallout();
+                if (isListViewMode) {
+                    setListHoveredIndex(-1);
+                    if (!isDragging) container.style.cursor = 'grab';
+                } else {
+                    hideHoverCallout();
+                }
             }
         }
 
@@ -3175,7 +3728,9 @@
                 const oldIdx = prevIndexById.get(id);
                 const slot = currentLatticeSlots[newIdx];
                 cn.baseAB = { a: slot.a, b: slot.b };
-                const newTargetPos = computeTransformedLatticePos(slot, maxRow);
+                const newTargetPos = isListViewMode
+                    ? getListFlowCubePosition(newIdx)
+                    : computeTransformedLatticePos(slot, maxRow);
 
                 cn.index = newIdx;
                 const hitMesh = cn.group.children.find(c => c.userData && c.userData.projectIndex !== undefined);
@@ -3229,6 +3784,7 @@
 
             portfolioProjects = nextProjects;
             cubeNodes = nextCubeNodes;
+            renderListFlowCards();
 
             if (activeProjId !== null) {
                 const newActiveIdx = cubeNodes.findIndex(cn => cn.project.id === activeProjId);
@@ -3647,6 +4203,12 @@
                     const node = cubeNodes[activeProjectIndex];
                     const activeCubePos = node.targetPos.clone().add(node.targetFocusOffset);
                     targetLookAt.copy(getLeftShowcaseCameraTarget(activeCubePos, targetZoom));
+                } else if (isListViewMode) {
+                    const m = getListFlowMetrics();
+                    targetZoom = m.zoom;
+                    targetListScrollY = Math.min(targetListScrollY, getMaxListScrollY());
+                    applyListFlowCubePositions(false);
+                    targetLookAt.copy(getListFlowCameraTarget(targetListScrollY));
                 } else {
                     targetZoom = getResponsiveBaseZoom();
                 }
@@ -3702,6 +4264,14 @@
                         node.targetSpinY += dx * 0.012;
                         node.spinVelocityY = dx * 0.004;
                         node.targetSpinX = Math.max(-0.55, Math.min(0.55, node.targetSpinX + dy * 0.008));
+                    } else if (isListViewMode) {
+                        // List Flow mode: dragging vertically scrolls cubes & descriptions in lockstep
+                        const m = getListFlowMetrics();
+                        const worldPerPx = m.visibleHeight / Math.max(1, window.innerHeight);
+                        targetListScrollY = Math.max(0, Math.min(getMaxListScrollY(), targetListScrollY - dy * worldPerPx * 1.15));
+                        setMainHeaderVisibility(targetListScrollY <= 1.8);
+                        targetLookAt.copy(getListFlowCameraTarget(targetListScrollY));
+                        hideHoverCallout();
                     } else if (e.pointerType === 'touch') {
                         // Mobile touch browsing: vertical swipe descends/ascends through all 18 cubes,
                         // horizontal swipe gently orbits the Escher lattice!
@@ -3783,6 +4353,21 @@
                 if (e.deltaMode === 1) normDeltaY *= 32;
                 else if (e.deltaMode === 2) normDeltaY *= window.innerHeight;
 
+                if (isListViewMode) {
+                    const m = getListFlowMetrics();
+                    const worldPerPx = m.visibleHeight / Math.max(1, window.innerHeight);
+                    targetListScrollY = Math.max(0, Math.min(getMaxListScrollY(), targetListScrollY + normDeltaY * worldPerPx * 0.85));
+                    if (normDeltaY > 2 && targetListScrollY > 2.2) {
+                        setMainHeaderVisibility(false);
+                    } else if (normDeltaY < -2 && targetListScrollY <= 2.0) {
+                        setMainHeaderVisibility(true);
+                    } else if (targetListScrollY <= 1.2) {
+                        setMainHeaderVisibility(true);
+                    }
+                    targetLookAt.copy(getListFlowCameraTarget(targetListScrollY));
+                    return;
+                }
+
                 const delta = normDeltaY * 0.00055;
                 targetScrollOffset = Math.max(0, Math.min(1, targetScrollOffset + delta));
 
@@ -3814,17 +4399,23 @@
                 btn.textContent = isOpen ? '[–]' : '[+]';
                 gear.style.transform = isOpen ? 'rotate(90deg)' : 'rotate(0deg)';
             };
+            document.getElementById('toggle-list-mode-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                setListViewMode(!isListViewMode, true);
+            });
             document.getElementById('toggle-panel-size-btn').addEventListener('click', toggleSettings);
             document.getElementById('settings-header-btn').addEventListener('click', toggleSettings);
 
             // Scene Control Buttons
             document.getElementById('regen-shape-btn').addEventListener('click', () => {
+                if (isListViewMode) setListViewMode(false, false);
                 closeProjectInspector();
                 buildEscherPortfolioLattice(true);
                 showToast('NEW RANDOM ESCHER LATTICE GENERATED');
             });
 
             document.getElementById('reset-btn').addEventListener('click', () => {
+                if (isListViewMode) setListViewMode(false, false);
                 closeProjectInspector();
                 targetScrollOffset = 0;
                 scrollOffset = 0;
@@ -3917,6 +4508,7 @@
             });
 
             window.addEventListener('keydown', (e) => {
+                const studioOpen = !document.getElementById('studio-drawer').classList.contains('drawer-closed');
                 if (e.key === 'Escape') {
                     closeLightbox();
                     if (activeProjectIndex !== -1) closeProjectInspector();
@@ -3924,6 +4516,12 @@
                     transitionToProjectCube(activeProjectIndex + 1);
                 } else if (activeProjectIndex !== -1 && e.key === 'ArrowLeft') {
                     transitionToProjectCube(activeProjectIndex - 1);
+                } else if (isListViewMode && activeProjectIndex === -1 && !studioOpen && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+                    const m = getListFlowMetrics();
+                    const step = e.key === 'ArrowDown' ? m.rowSpacing : -m.rowSpacing;
+                    targetListScrollY = Math.max(0, Math.min(getMaxListScrollY(), targetListScrollY + step));
+                    setMainHeaderVisibility(targetListScrollY <= 1.8);
+                    targetLookAt.copy(getListFlowCameraTarget(targetListScrollY));
                 }
             });
 
@@ -4022,6 +4620,7 @@
             requestAnimationFrame(animate);
 
             scrollOffset += (targetScrollOffset - scrollOffset) * 0.1;
+            listScrollY += (targetListScrollY - listScrollY) * 0.12;
             currentZoom += (targetZoom - currentZoom) * 0.085;
             currentRotation.x += (targetRotation.x - currentRotation.x) * 0.085;
             currentRotation.y += (targetRotation.y - currentRotation.y) * 0.085;
@@ -4121,14 +4720,15 @@
                 }
             });
 
-            // Show Upside-Down Bottom Mirrored Header only when scrolled to the bottom of the portfolio cubes
+            // Show Upside-Down Bottom Mirrored Header only when scrolled to the bottom of the portfolio cubes (Lattice mode)
             const bottomMirror = document.getElementById('bottom-mirrored-header');
             if (bottomMirror) {
-                const showBottomMirror = activeProjectIndex === -1 && scrollOffset >= 0.82;
+                const showBottomMirror = !isListViewMode && activeProjectIndex === -1 && scrollOffset >= 0.82;
                 bottomMirror.style.opacity = showBottomMirror ? '0.92' : '0';
                 bottomMirror.style.pointerEvents = showBottomMirror ? 'auto' : 'none';
             }
 
+            syncListFlowOverlayPositions();
             renderer.render(scene, camera);
         }
 
