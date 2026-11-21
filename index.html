@@ -1033,16 +1033,16 @@
         let targetRotation = { x: DEFAULT_ROT_X, y: DEFAULT_ROT_Y, z: 0 };
         let currentRotation = { x: DEFAULT_ROT_X, y: DEFAULT_ROT_Y, z: 0 };
 
-        // Responsive Zoom Calculation: Spacious architectural overview showing more cubes at once
-        const SPINE_START_LEVEL = 1.35;
+        // Responsive Zoom Calculation: Balanced architectural overview showing 6–9 detailed cubes
+        const SPINE_START_LEVEL = 0.85;
         const INITIAL_CLUSTER_COUNT = 12;
 
         function getResponsiveBaseZoom() {
             const w = window.innerWidth;
-            if (w < 640) return 0.64;
-            if (w <= 1100) return 0.68;
-            const scaleBoost = 1 + ((w - 1100) / 1100) * 0.20;
-            return Math.min(0.84, 0.68 * scaleBoost);
+            if (w < 640) return 0.78;
+            if (w <= 1100) return 0.86;
+            const scaleBoost = 1 + ((w - 1100) / 1100) * 0.28;
+            return Math.min(1.10, 0.86 * scaleBoost);
         }
 
         let currentZoom = getResponsiveBaseZoom() * 0.88;
