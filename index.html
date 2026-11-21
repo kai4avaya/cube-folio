@@ -721,7 +721,7 @@
                 <button id="footer-prev-btn" class="ctrl-btn py-2 px-3">
                     <span>← Slide Prev Node</span>
                 </button>
-                <span id="inspector-progress-label" class="mono text-[10px] font-bold uppercase opacity-70">NODE 01 / 19</span>
+                <span id="inspector-progress-label" class="mono text-[10px] font-bold uppercase opacity-70">NODE 01 / 20</span>
                 <button id="footer-next-btn" class="px-3.5 py-2 rounded-md bg-blue-700 text-white hover:bg-blue-800 transition mono text-[10px] font-bold uppercase tracking-wider cursor-pointer">
                     <span>Slide Next Node →</span>
                 </button>
@@ -783,7 +783,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase tracking-wider opacity-70 mb-1">Forced Order #</label>
-                        <input id="new-proj-order" type="number" min="1" value="20" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 focus:outline-none focus:border-stone-800 bg-white/90 text-stone-900">
+                        <input id="new-proj-order" type="number" min="1" value="21" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 focus:outline-none focus:border-stone-800 bg-white/90 text-stone-900">
                     </div>
                 </div>
                 <div>
@@ -807,7 +807,7 @@
             <div>
                 <div class="flex items-center justify-between gap-2 mb-1.5">
                     <span class="mono text-[10px] font-bold uppercase tracking-wider opacity-70">3. Active Portfolio Cubes</span>
-                    <span id="cube-count-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-stone-500/20 font-bold">19 CUBES</span>
+                    <span id="cube-count-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-stone-500/20 font-bold">20 CUBES</span>
                 </div>
                 <p class="mono text-[9px] uppercase tracking-wider opacity-60 mb-2">
                     Drag <span class="font-extrabold text-blue-700 dark:text-blue-400">⋮⋮</span> handle to flip cubes into new positions in real time
@@ -937,7 +937,7 @@
         const container = document.getElementById('canvas-container');
         const toast = document.getElementById('toast');
 
-        // --- Kai Kleinbard Real 19-Cube Portfolio Projects ---
+        // --- Kai Kleinbard Real 20-Cube Portfolio Projects ---
         let portfolioProjects = [
             {
                 id: 'kaik-home',
@@ -1073,10 +1073,22 @@
                 previewDataUrl: './assets/projects/mechanic-botanic.jpg'
             },
             {
-                id: 'dance-journal',
+                id: 'mono-glyph',
                 order: 12,
+                title: 'MONO // GLYPH — ASCII GALLERY',
+                tag: 'PROCEDURAL ASCII // 12',
+                url: 'https://cre8ture.github.io/ascii/',
+                desc: 'Monochrome masonry gallery of 20 real-time procedural ASCII and character-streaming animations rendered purely in <pre> text buffers with zero canvas bitmaps—featuring an interactive Name Streamer, clickable Live Link Portal, 3D ASCII sculptures (Ghostty, Cube, Torus, DNA Helix), mathematical fields (Moiré, Metaballs, Lissajous, Cellular Automaton, Flocking Boids, Sonar), dark/light polarity toggle, and inspectable source code.',
+                type: 'memory_towers',
+                previewImage: './assets/projects/mono-glyph.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/mono-glyph.jpg'
+            },
+            {
+                id: 'dance-journal',
+                order: 13,
                 title: 'DANCE JOURNAL // EMBODIED AI',
-                tag: 'POSE + AUDIO // 12',
+                tag: 'POSE + AUDIO // 13',
                 url: 'https://dance-journal.kaik.space/',
                 desc: 'Embodied AI experiment translating real-time body posture and voice into a generative WebGL canvas and spatial audio instrument using pose estimation.',
                 type: 'gyro_core',
@@ -1086,9 +1098,9 @@
             },
             {
                 id: 'p2p-face-track-sound',
-                order: 13,
+                order: 14,
                 title: 'P2P FACE TRACK // AUDIO ROOM',
-                tag: 'EMBODIED P2P // 13',
+                tag: 'EMBODIED P2P // 14',
                 url: '',
                 isPrivate: true,
                 desc: 'Browser-based peer-to-peer audiovisual experiment combining real-time facial landmark tracking, emotion and movement detection, generative audio synthesis, and collaborative P2P audio rooms over a lightweight Node.js server (JavaScript 90.2%, CSS 5%, HTML 4.8% — private repo, no public UI).',
@@ -1099,9 +1111,9 @@
             },
             {
                 id: 'tangle-draw',
-                order: 14,
+                order: 15,
                 title: 'TANGLE DRAW // AUDIO CANVAS',
-                tag: 'GENERATIVE ART // 14',
+                tag: 'GENERATIVE ART // 15',
                 url: 'https://kai4avaya.github.io/tangle-draw/',
                 desc: 'Canvas-based calligraphic generative art paired with Web Audio API synthesis that tracks and sonifies the geometry of your drawn tangles in real time.',
                 type: 'strata_pipes',
@@ -1111,9 +1123,9 @@
             },
             {
                 id: 'flowers',
-                order: 15,
+                order: 16,
                 title: 'FLOWERS // 3D AUDIO SHAPES',
-                tag: 'WEB AUDIO 3D // 15',
+                tag: 'WEB AUDIO 3D // 16',
                 url: 'https://kai4avaya.github.io/flowers/',
                 desc: 'Interactive Three.js generative music garden where sculptural wireframe blooms respond to touch and motion with resonant Web Audio harmonies.',
                 type: 'aqueduct_arches',
@@ -1123,9 +1135,9 @@
             },
             {
                 id: 'water-flow',
-                order: 16,
+                order: 17,
                 title: 'WATER FLOW // MEDITATIVE',
-                tag: 'ENVIRONMENT // 16',
+                tag: 'ENVIRONMENT // 17',
                 url: 'https://kai4avaya.github.io/water-flow/',
                 desc: 'Calming monochromatic paper-shaded river experiment combining procedural linework, animated birds, and generative nature audio.',
                 type: 'tunnels_cutaway',
@@ -1135,9 +1147,9 @@
             },
             {
                 id: 'ball-roll',
-                order: 17,
+                order: 18,
                 title: 'BALL ROLL // KATAMARI 3D',
-                tag: 'PHYSICS GAME // 17',
+                tag: 'PHYSICS GAME // 18',
                 url: 'https://kai4avaya.github.io/ball-roll/',
                 desc: 'Three.js sketch-style physics game inspired by Katamari Damacy where you gather geometric debris while leaving a sumi-e ink imprint trail.',
                 type: 'reactor_array',
@@ -1147,9 +1159,9 @@
             },
             {
                 id: 'factory',
-                order: 18,
+                order: 19,
                 title: 'FACTORY // CLOCKWORK ASSEMBLY',
-                tag: '3D MOTION // 18',
+                tag: '3D MOTION // 19',
                 url: 'https://kai4avaya.github.io/factory/',
                 desc: 'Scroll-driven Echochrome-inspired clockwork machine exploring time-scrubbed mechanical assembly and disassembly with Three.js, Anime.js, and Web Audio.',
                 type: 'escher_stairs',
@@ -1159,9 +1171,9 @@
             },
             {
                 id: 'ascii-cube',
-                order: 19,
+                order: 20,
                 title: 'CUBE CUBE HI // ASCII 3D',
-                tag: 'SHADER STUDY // 19',
+                tag: 'SHADER STUDY // 20',
                 url: 'https://kai4avaya.github.io/cube/',
                 desc: 'Ghostty-inspired real-time dancing 3D ASCII cube streaming high-contrast character shaders that respond dynamically to cursor movement.',
                 type: 'memory_towers',
