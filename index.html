@@ -896,19 +896,23 @@
         let targetRotation = { x: DEFAULT_ROT_X, y: DEFAULT_ROT_Y, z: 0 };
         let currentRotation = { x: DEFAULT_ROT_X, y: DEFAULT_ROT_Y, z: 0 };
 
-        // Responsive Zoom Calculation: Larger cubes across all screen sizes
+        // Responsive Zoom Calculation: Spacious architectural overview showing more cubes at once
+        const SPINE_START_LEVEL = 1.35;
+        const INITIAL_CLUSTER_COUNT = 12;
+
         function getResponsiveBaseZoom() {
             const w = window.innerWidth;
-            if (w <= 1100) return 1.18;
-            const scaleBoost = 1 + ((w - 1100) / 850) * 0.68;
-            return Math.min(2.45, 1.18 * scaleBoost);
+            if (w < 640) return 0.64;
+            if (w <= 1100) return 0.68;
+            const scaleBoost = 1 + ((w - 1100) / 1100) * 0.20;
+            return Math.min(0.84, 0.68 * scaleBoost);
         }
 
-        let currentZoom = getResponsiveBaseZoom() * 0.85;
+        let currentZoom = getResponsiveBaseZoom() * 0.88;
         let targetZoom = getResponsiveBaseZoom();
 
-        let cameraTarget = new THREE.Vector3(0.75, 1.75, -0.75);
-        let targetLookAt = new THREE.Vector3(0.75, 1.75, -0.75);
+        let cameraTarget = new THREE.Vector3(-0.5 * SPINE_START_LEVEL * 4.8, -1.0 * SPINE_START_LEVEL * 4.8, 0.5 * SPINE_START_LEVEL * 4.8);
+        let targetLookAt = new THREE.Vector3(-0.5 * SPINE_START_LEVEL * 4.8, -1.0 * SPINE_START_LEVEL * 4.8, 0.5 * SPINE_START_LEVEL * 4.8);
 
         let isInvertedWorld = false; // Inception upside-down flip
         let isMirroredLR = false;    // Left/Right horizontal flip
@@ -1256,9 +1260,9 @@
                 const minY = Math.min(...cubeNodes.map(cn => cn.targetPos.y));
                 maxLevel = Math.max(2, -minY / cubeSize);
             }
-            // Start slightly above Cube #01 (negative level) so the top cube sits well below the top brutalist header
-            const startLevel = -0.36;
-            const endLevel = Math.max(startLevel, maxLevel - 0.45);
+            // Frame the top pinnacle cube cleanly beneath the header while showcasing 10+ cubes below it
+            const startLevel = SPINE_START_LEVEL;
+            const endLevel = Math.max(startLevel, maxLevel - 1.35);
             const level = startLevel + (endLevel - startLevel) * scrollT;
 
             return new THREE.Vector3(
@@ -2700,7 +2704,7 @@
 
                 primaryLatticeGroup.add(nodeGroup);
 
-                const initialClusterCount = 6;
+                const initialClusterCount = INITIAL_CLUSTER_COUNT;
                 cubeNodes.push({
                     group: nodeGroup,
                     realSubGroup,
@@ -2723,8 +2727,8 @@
                     dimFactor: 1.0,
                     targetDimFactor: 1.0,
                     assemblyProgress: 0,
-                    assemblyDelay: idx < initialClusterCount ? (idx * 0.08) : 0,
-                    scrollThreshold: idx < initialClusterCount ? -1 : ((idx - (initialClusterCount - 0.7)) / Math.max(1, orderedProjects.length - initialClusterCount)) * 0.75,
+                    assemblyDelay: idx < initialClusterCount ? (idx * 0.055) : 0,
+                    scrollThreshold: idx < initialClusterCount ? -1 : ((idx - (initialClusterCount - 0.7)) / Math.max(1, orderedProjects.length - initialClusterCount)) * 0.72,
                     isUnlocked: idx < initialClusterCount,
                     project: proj,
                     index: idx
@@ -2855,7 +2859,7 @@
                 : Math.max(1.2, (frustumSize * aspect * 0.23) / 3.9);
             targetZoom = isMobile
                 ? maxSafeLeftZoom
-                : Math.min(getResponsiveBaseZoom() * 1.26, maxSafeLeftZoom);
+                : Math.min(Math.max(1.55, getResponsiveBaseZoom() * 1.65), maxSafeLeftZoom);
 
             const activeCubePos = node.targetPos.clone().add(showcasePopOffset);
             targetLookAt.copy(getLeftShowcaseCameraTarget(activeCubePos, targetZoom));
@@ -3087,10 +3091,10 @@
             if (Math.abs(ndc.y) > 0.78) {
                 const minY = Math.min(...cubeNodes.map(cn => cn.targetPos.y));
                 const maxLevel = Math.max(2, -minY / cubeSize);
-                const startLevel = -0.36;
-                const endLevel = Math.max(startLevel, maxLevel - 0.45);
+                const startLevel = SPINE_START_LEVEL;
+                const endLevel = Math.max(startLevel, maxLevel - 1.35);
                 const cubeLevel = -node.targetPos.y / cubeSize;
-                const desiredScroll = cubeLevel <= 1.2
+                const desiredScroll = cubeLevel <= 2.4
                     ? 0
                     : Math.max(0, Math.min(1, (cubeLevel - startLevel) / Math.max(0.01, endLevel - startLevel)));
                 targetScrollOffset = desiredScroll;
@@ -3156,7 +3160,7 @@
                 : null;
 
             const maxRow = Math.max(...currentLatticeSlots.map(s => s.a + s.b));
-            const initialClusterCount = 6;
+            const initialClusterCount = INITIAL_CLUSTER_COUNT;
             const nextCubeNodes = [];
             const nextProjects = [];
 
@@ -3680,7 +3684,7 @@
                     const curDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
                     if (lastPinchDist !== null && lastPinchDist > 10) {
                         const scaleRatio = curDist / lastPinchDist;
-                        targetZoom = Math.max(0.65, Math.min(2.6, targetZoom * scaleRatio));
+                        targetZoom = Math.max(0.45, Math.min(2.6, targetZoom * scaleRatio));
                     }
                     lastPinchDist = curDist;
                     hideHoverCallout();
