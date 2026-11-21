@@ -519,7 +519,7 @@
         <div class="flex items-center gap-2.5 mt-2">
             <span class="inline-block w-5 h-2 bg-blue-700"></span>
             <p id="display-mirror-sub" class="mono text-xs sm:text-sm font-bold uppercase tracking-[0.22em] opacity-85">
-                ARCHITECTURAL AI SYSTEMS // SPATIAL INTERFACES
+                AI SYSTEMS // PRODUCT DESIGN ENGINEERING
             </p>
         </div>
     </div>
@@ -556,7 +556,7 @@
                 <div id="display-sub-row" class="flex items-center gap-2.5 mt-2.5">
                     <span class="inline-block w-5 h-2 bg-blue-700"></span>
                     <p id="display-creator-sub" class="mono text-xs sm:text-sm font-bold uppercase tracking-[0.22em] opacity-85">
-                        ARCHITECTURAL AI SYSTEMS // SPATIAL INTERFACES
+                        AI SYSTEMS // PRODUCT DESIGN ENGINEERING
                     </p>
                 </div>
             </div>
@@ -888,7 +888,7 @@
                 </div>
                 <div>
                     <label class="block text-[10px] uppercase tracking-wider opacity-70 mb-1">Portfolio Subheading</label>
-                    <input id="creator-sub-input" type="text" value="ARCHITECTURAL AI SYSTEMS // SPATIAL INTERFACES" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 bg-white/90 text-stone-900 focus:outline-none focus:border-blue-700">
+                    <input id="creator-sub-input" type="text" value="AI SYSTEMS // PRODUCT DESIGN ENGINEERING" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 bg-white/90 text-stone-900 focus:outline-none focus:border-blue-700">
                 </div>
             </div>
 
@@ -1024,7 +1024,7 @@
         // Portfolio Creator Identity
         let portfolioIdentity = {
             name: 'KAI KLEINBARD',
-            subheading: 'ARCHITECTURAL AI SYSTEMS // SPATIAL INTERFACES'
+            subheading: 'AI SYSTEMS // PRODUCT DESIGN ENGINEERING'
         };
 
         // True Isometric Camera Angles for Non-Overlapping Honeycomb Alignment
@@ -1382,7 +1382,7 @@
 
         function updateIdentityDisplay() {
             const nameStr = (portfolioIdentity.name || 'KAI KLEINBARD').toUpperCase();
-            const subStr = (portfolioIdentity.subheading || 'ARCHITECTURAL AI SYSTEMS // SPATIAL INTERFACES').toUpperCase();
+            const subStr = (portfolioIdentity.subheading || 'AI SYSTEMS // PRODUCT DESIGN ENGINEERING').toUpperCase();
             document.getElementById('display-creator-name').textContent = nameStr;
             document.getElementById('display-creator-sub').textContent = subStr;
             document.getElementById('display-mirror-name').textContent = nameStr;
@@ -4539,7 +4539,7 @@
                 updateIdentityDisplay();
             });
             document.getElementById('creator-sub-input').addEventListener('input', (e) => {
-                portfolioIdentity.subheading = e.target.value || 'ARCHITECTURAL AI SYSTEMS';
+                portfolioIdentity.subheading = e.target.value || 'AI SYSTEMS // PRODUCT DESIGN ENGINEERING';
                 updateIdentityDisplay();
             });
 
