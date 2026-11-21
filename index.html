@@ -208,6 +208,49 @@
             opacity: 0;
             pointer-events: none;
         }
+        /* Draggable Active Cubes List Rows & Grip Handle */
+        .studio-proj-row {
+            transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .studio-proj-row.is-dragging {
+            border-color: #1d4ed8 !important;
+            background: rgba(29, 78, 216, 0.14) !important;
+            box-shadow: 0 8px 22px rgba(29, 78, 216, 0.24);
+            transform: scale(1.015);
+            position: relative;
+            z-index: 25;
+        }
+        body.obsidian-mode .studio-proj-row.is-dragging {
+            border-color: #60a5fa !important;
+            background: rgba(37, 99, 235, 0.28) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+        }
+        .studio-drag-handle {
+            cursor: grab;
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+            color: rgba(28, 25, 23, 0.48);
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+        .studio-drag-handle:hover {
+            color: #1d4ed8;
+            background: rgba(29, 78, 216, 0.1);
+        }
+        .studio-drag-handle:active,
+        .studio-proj-row.is-dragging .studio-drag-handle {
+            cursor: grabbing;
+            color: #1d4ed8;
+            background: rgba(29, 78, 216, 0.16);
+        }
+        body.obsidian-mode .studio-drag-handle {
+            color: rgba(245, 245, 244, 0.48);
+        }
+        body.obsidian-mode .studio-drag-handle:hover,
+        body.obsidian-mode .studio-proj-row.is-dragging .studio-drag-handle {
+            color: #93c5fd;
+            background: rgba(96, 165, 250, 0.18);
+        }
         /* Split-Screen Right Architectural Dossier Panel */
         #project-inspector {
             background: rgba(243, 240, 233, 0.96);
@@ -698,7 +741,7 @@
             </button>
         </div>
 
-        <div class="my-3 flex-1 overflow-y-auto custom-scroll pr-1 space-y-4">
+        <div id="studio-scroll-body" class="my-3 flex-1 overflow-y-auto custom-scroll pr-1 space-y-4">
             <!-- Section 1: Creator Identity -->
             <div class="p-3 rounded-xl bg-stone-500/10 border border-stone-400/25 space-y-2.5">
                 <span class="mono text-[10px] font-bold uppercase tracking-wider text-blue-700 block">1. Portfolio Identity</span>
@@ -740,7 +783,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase tracking-wider opacity-70 mb-1">Forced Order #</label>
-                        <input id="new-proj-order" type="number" min="1" value="13" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 focus:outline-none focus:border-stone-800 bg-white/90 text-stone-900">
+                        <input id="new-proj-order" type="number" min="1" value="19" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 focus:outline-none focus:border-stone-800 bg-white/90 text-stone-900">
                     </div>
                 </div>
                 <div>
@@ -762,10 +805,13 @@
 
             <!-- Section 4: Active Cubes List -->
             <div>
-                <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center justify-between gap-2 mb-1.5">
                     <span class="mono text-[10px] font-bold uppercase tracking-wider opacity-70">3. Active Portfolio Cubes</span>
-                    <span id="cube-count-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-stone-500/20 font-bold">12 CUBES</span>
+                    <span id="cube-count-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-stone-500/20 font-bold">18 CUBES</span>
                 </div>
+                <p class="mono text-[9px] uppercase tracking-wider opacity-60 mb-2">
+                    Drag <span class="font-extrabold text-blue-700 dark:text-blue-400">⋮⋮</span> handle to flip cubes into new positions in real time
+                </p>
                 <div id="studio-project-list" class="space-y-2"></div>
             </div>
 
@@ -885,6 +931,8 @@
         let pendingUploadedTexture = null;
         let pendingUploadedDataUrl = null;
         let cubeNodes = []; // Holds 3D Group & metadata for each Escher project cube
+        let currentLatticeSlots = []; // Active honeycomb (a, b) slots for real-time drag-to-flip reordering
+        let draggingProjectId = null; // Tracks project ID currently dragged in Studio list
 
         const container = document.getElementById('canvas-container');
         const toast = document.getElementById('toast');
@@ -2467,6 +2515,7 @@
             }
 
             const latticeCoords = generateEscherLatticeCoordinates(orderedProjects.length, randomizeSeed);
+            currentLatticeSlots = latticeCoords.map(c => ({ a: c.a, b: c.b }));
             const cubeSize = 4.8;
             const edgeHex = isObsidianScheme ? 0x93c5fd : 0x1e3a8a;
 
@@ -2646,6 +2695,7 @@
                     spinX: 0,
                     targetSpinX: 0,
                     spinVelocityY: 0,
+                    flipBoost: 0,
                     dimFactor: 1.0,
                     targetDimFactor: 1.0,
                     assemblyProgress: 0,
@@ -2905,7 +2955,7 @@
         }
 
         function updateHoverLeaderCallout(clientX, clientY) {
-            if (activeProjectIndex !== -1 || isDragging) {
+            if (activeProjectIndex !== -1 || isDragging || draggingProjectId !== null) {
                 hideHoverCallout();
                 return;
             }
@@ -2984,6 +3034,194 @@
             }
         }
 
+        // --- Real-Time Lattice Reordering & 3D Cube Flip Engine ---
+        function computeTransformedLatticePos(ab, maxRow) {
+            const cubeSize = 4.8;
+            const pivotA = Math.floor(maxRow / 2);
+            const pivotB = maxRow - pivotA;
+            let a = ab.a;
+            let b = ab.b;
+
+            if (isInvertedWorld) {
+                a = pivotA - a;
+                b = pivotB - b;
+            }
+            if (isMirroredLR) {
+                const tmp = a;
+                a = b;
+                b = tmp;
+            }
+            return new THREE.Vector3(-a * cubeSize, -(a + b) * cubeSize, b * cubeSize);
+        }
+
+        function ensureCubeInCameraView(node) {
+            if (!node || !camera || activeProjectIndex !== -1) return;
+            const cubeSize = 4.8;
+            const probe = node.targetPos.clone();
+            probe.x *= currentScaleX;
+            const ndc = probe.project(camera);
+            if (Math.abs(ndc.y) > 0.78) {
+                const minY = Math.min(...cubeNodes.map(cn => cn.targetPos.y));
+                const maxLevel = Math.max(2, -minY / cubeSize);
+                const startLevel = -0.36;
+                const endLevel = Math.max(startLevel, maxLevel - 0.45);
+                const cubeLevel = -node.targetPos.y / cubeSize;
+                const desiredScroll = cubeLevel <= 1.2
+                    ? 0
+                    : Math.max(0, Math.min(1, (cubeLevel - startLevel) / Math.max(0.01, endLevel - startLevel)));
+                targetScrollOffset = desiredScroll;
+                targetLookAt.copy(getScrollSpineTarget(targetScrollOffset));
+                setMainHeaderVisibility(targetScrollOffset <= 0.04);
+            }
+        }
+
+        function setDraggedCubeHighlight(projectId) {
+            draggingProjectId = projectId;
+            if (projectId !== null) {
+                hideHoverCallout();
+            }
+
+            const baseHex = isObsidianScheme ? 0x93c5fd : 0x1e3a8a;
+            cubeNodes.forEach((cn, idx) => {
+                const isDragged = projectId !== null && cn.project.id === projectId;
+                const isActive = idx === activeProjectIndex;
+
+                if (isDragged) {
+                    if (!cn.isUnlocked || cn.assemblyProgress < 0.99) {
+                        cn.isUnlocked = true;
+                        cn.assemblyDelay = 0;
+                        if (cn.assemblyProgress === 0) {
+                            cn.currentBasePos.copy(cn.targetPos);
+                        }
+                        cn.assemblyProgress = 1;
+                    }
+                    cn.outlineMesh.material.color.setHex(0x2563eb);
+                    if (!isActive) {
+                        cn.targetFocusOffset.set(0, 0.55, 0);
+                    }
+                    cn.flipBoost = Math.max(cn.flipBoost, 0.65);
+                    ensureCubeInCameraView(cn);
+                } else {
+                    cn.outlineMesh.material.color.setHex(isActive ? 0x2563eb : baseHex);
+                    if (!isActive) {
+                        cn.targetFocusOffset.set(0, 0, 0);
+                    }
+                }
+            });
+        }
+
+        function reorderCubesRealtime(orderedIds, movedId = null, keepDraggedLift = false) {
+            if (!Array.isArray(orderedIds) || orderedIds.length === 0) return;
+            if (currentLatticeSlots.length !== orderedIds.length || cubeNodes.length !== orderedIds.length) {
+                // Fallback if counts diverged
+                const projMap = new Map(portfolioProjects.map(p => [p.id, p]));
+                portfolioProjects = orderedIds.map((id, i) => {
+                    const p = projMap.get(id);
+                    if (p) p.order = i + 1;
+                    return p;
+                }).filter(Boolean);
+                buildEscherPortfolioLattice(false);
+                return;
+            }
+
+            const projById = new Map(portfolioProjects.map(p => [p.id, p]));
+            const nodeById = new Map(cubeNodes.map(cn => [cn.project.id, cn]));
+            const prevIndexById = new Map(cubeNodes.map((cn, i) => [cn.project.id, i]));
+            const activeProjId = (activeProjectIndex !== -1 && cubeNodes[activeProjectIndex])
+                ? cubeNodes[activeProjectIndex].project.id
+                : null;
+
+            const maxRow = Math.max(...currentLatticeSlots.map(s => s.a + s.b));
+            const initialClusterCount = 6;
+            const nextCubeNodes = [];
+            const nextProjects = [];
+
+            orderedIds.forEach((id, newIdx) => {
+                const proj = projById.get(id);
+                const cn = nodeById.get(id);
+                if (!proj || !cn) return;
+
+                proj.order = newIdx + 1;
+                nextProjects.push(proj);
+
+                const oldIdx = prevIndexById.get(id);
+                const slot = currentLatticeSlots[newIdx];
+                cn.baseAB = { a: slot.a, b: slot.b };
+                const newTargetPos = computeTransformedLatticePos(slot, maxRow);
+
+                cn.index = newIdx;
+                const hitMesh = cn.group.children.find(c => c.userData && c.userData.projectIndex !== undefined);
+                if (hitMesh) {
+                    hitMesh.userData.projectIndex = newIdx;
+                }
+                cn.scrollThreshold = newIdx < initialClusterCount
+                    ? -1
+                    : ((newIdx - (initialClusterCount - 0.7)) / Math.max(1, orderedIds.length - initialClusterCount)) * 0.75;
+
+                if (oldIdx !== newIdx) {
+                    // Unlock immediately so cubes dragged in/out of deeper rows flip visibly in real time
+                    if (!cn.isUnlocked || cn.assemblyProgress < 0.99) {
+                        if (cn.assemblyProgress === 0) {
+                            cn.currentBasePos.copy(cn.targetPos);
+                        }
+                        cn.isUnlocked = true;
+                        cn.assemblyDelay = 0;
+                        cn.assemblyProgress = 1;
+                    }
+
+                    cn.targetPos.copy(newTargetPos);
+                    cn.flipBoost = 0.95;
+
+                    const dir = newIdx < oldIdx ? 1 : -1;
+                    const baseTurns = Math.round(cn.spinY / (Math.PI * 2)) * (Math.PI * 2);
+
+                    if (id === movedId) {
+                        // Primary dragged cube: energetic 360° flip + pitch kick + upward arc
+                        cn.targetSpinY = baseTurns + dir * Math.PI * 2;
+                        cn.spinX += dir * 0.48;
+                        cn.targetSpinX = 0;
+                        cn.focusOffset.y = Math.min(2.2, cn.focusOffset.y + 1.2);
+                        cn.targetFocusOffset.set(0, keepDraggedLift ? 0.55 : 0, 0);
+                    } else {
+                        // Displaced neighbor cube: crisp counter-flip into its shifted lattice coordinate
+                        cn.targetSpinY = baseTurns - dir * Math.PI * 2;
+                        cn.spinX -= dir * 0.24;
+                        cn.targetSpinX = 0;
+                        cn.focusOffset.y = Math.max(-1.0, cn.focusOffset.y - 0.42);
+                        if (id !== activeProjId) {
+                            cn.targetFocusOffset.set(0, 0, 0);
+                        }
+                    }
+                } else {
+                    cn.targetPos.copy(newTargetPos);
+                }
+
+                nextCubeNodes.push(cn);
+            });
+
+            portfolioProjects = nextProjects;
+            cubeNodes = nextCubeNodes;
+
+            if (activeProjId !== null) {
+                const newActiveIdx = cubeNodes.findIndex(cn => cn.project.id === activeProjId);
+                if (newActiveIdx !== -1) {
+                    activeProjectIndex = newActiveIdx;
+                    const activeNode = cubeNodes[activeProjectIndex];
+                    populateRightDossierPanel(activeNode, activeProjectIndex);
+                    const activeCubePos = activeNode.targetPos.clone().add(activeNode.targetFocusOffset);
+                    targetLookAt.copy(getLeftShowcaseCameraTarget(activeCubePos, targetZoom));
+                }
+            } else if (movedId) {
+                const movedNode = cubeNodes.find(cn => cn.project.id === movedId);
+                if (movedNode) {
+                    if (keepDraggedLift) {
+                        movedNode.outlineMesh.material.color.setHex(0x2563eb);
+                    }
+                    ensureCubeInCameraView(movedNode);
+                }
+            }
+        }
+
         // --- Studio Drawer Project Management ---
         function updateCustomMediaNotice() {
             const hasCustom = portfolioProjects.some(p => p.customTexture !== null);
@@ -2996,39 +3234,189 @@
         function renderStudioProjectList() {
             const list = document.getElementById('studio-project-list');
             const badge = document.getElementById('cube-count-badge');
+            const newOrderInput = document.getElementById('new-proj-order');
             if (!list) return;
 
             badge.textContent = `${portfolioProjects.length} CUBES`;
+            if (newOrderInput) newOrderInput.value = portfolioProjects.length + 1;
             list.innerHTML = '';
 
-            const sorted = [...portfolioProjects].sort((a, b) => a.order - b.order);
-            sorted.forEach((proj) => {
+            const forceOrder = document.getElementById('force-order-toggle')?.checked ?? true;
+            const sorted = forceOrder
+                ? [...portfolioProjects].sort((a, b) => a.order - b.order)
+                : [...portfolioProjects];
+
+            sorted.forEach((proj, idx) => {
                 const row = document.createElement('div');
-                row.className = 'p-2.5 rounded-lg border border-stone-400/25 bg-white/60 dark:bg-stone-900/60 flex items-center justify-between gap-2';
+                row.dataset.id = proj.id;
+                row.className = 'studio-proj-row p-2.5 rounded-lg border border-stone-400/25 bg-white/60 dark:bg-stone-900/60 flex items-center justify-between gap-2';
                 row.innerHTML = `
-                    <div class="flex items-center gap-2 min-w-0">
-                        <input type="number" min="1" value="${proj.order}" data-id="${proj.id}" class="order-input w-11 text-center mono text-[11px] font-bold py-1 rounded border border-stone-300 bg-white text-stone-900" title="Forced Order #" />
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <button type="button" class="studio-drag-handle shrink-0 p-1.5 -ml-1 rounded-md flex items-center justify-center" title="Drag to flip cube into a new position" aria-label="Drag ${proj.title} to reorder">
+                            <svg class="w-3.5 h-3.5 pointer-events-none" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <circle cx="5.5" cy="3.5" r="1.35"/>
+                                <circle cx="10.5" cy="3.5" r="1.35"/>
+                                <circle cx="5.5" cy="8" r="1.35"/>
+                                <circle cx="10.5" cy="8" r="1.35"/>
+                                <circle cx="5.5" cy="12.5" r="1.35"/>
+                                <circle cx="10.5" cy="12.5" r="1.35"/>
+                            </svg>
+                        </button>
+                        <input type="number" min="1" value="${idx + 1}" data-id="${proj.id}" class="order-input w-11 text-center mono text-[11px] font-bold py-1 rounded border border-stone-300 bg-white text-stone-900 shrink-0" title="Order Position #" />
                         <div class="min-w-0">
                             <div class="mono text-[11px] font-bold uppercase truncate">${proj.title}</div>
                             <div class="mono text-[9px] opacity-65 truncate">${proj.tag}</div>
                         </div>
                     </div>
-                    <button data-remove-id="${proj.id}" class="remove-proj-btn px-2 py-1 rounded text-[10px] mono font-bold text-rose-700 hover:bg-rose-600 hover:text-white transition" title="Remove Cube">✕</button>
+                    <button data-remove-id="${proj.id}" class="remove-proj-btn px-2 py-1 rounded text-[10px] mono font-bold text-rose-700 hover:bg-rose-600 hover:text-white transition shrink-0" title="Remove Cube">✕</button>
                 `;
                 list.appendChild(row);
+            });
+
+            // Helper to animate sibling rows smoothly (DOM FLIP) when dragged row crosses them
+            const animateSiblingFlip = (siblings, prevTops) => {
+                siblings.forEach((el) => {
+                    const prevTop = prevTops.get(el);
+                    if (prevTop === undefined) return;
+                    const deltaY = prevTop - el.getBoundingClientRect().top;
+                    if (Math.abs(deltaY) < 0.5) return;
+                    el.style.transition = 'none';
+                    el.style.transform = `translateY(${deltaY}px)`;
+                    void el.offsetHeight;
+                    el.style.transition = 'transform 170ms cubic-bezier(0.2, 0, 0, 1)';
+                    el.style.transform = 'translateY(0)';
+                });
+            };
+
+            const syncRowOrderBadges = () => {
+                const rows = Array.from(list.querySelectorAll('.studio-proj-row'));
+                rows.forEach((r, idx) => {
+                    const inp = r.querySelector('.order-input');
+                    if (inp) inp.value = idx + 1;
+                });
+                return rows.map(r => r.dataset.id);
+            };
+
+            // Pointer-based real-time drag reordering (works across Chrome, Firefox, Safari, & Mobile Touch)
+            list.querySelectorAll('.studio-drag-handle').forEach((handle) => {
+                handle.addEventListener('pointerdown', (e) => {
+                    if (e.button !== 0 && e.pointerType === 'mouse') return;
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const draggedRow = handle.closest('.studio-proj-row');
+                    if (!draggedRow) return;
+
+                    const draggedId = draggedRow.dataset.id;
+                    const pointerId = e.pointerId;
+                    const scrollBody = document.getElementById('studio-scroll-body');
+                    const initialIndex = Array.from(list.querySelectorAll('.studio-proj-row')).indexOf(draggedRow);
+
+                    try { handle.setPointerCapture(pointerId); } catch (_) {}
+
+                    draggedRow.classList.add('is-dragging');
+                    document.body.style.cursor = 'grabbing';
+                    setDraggedCubeHighlight(draggedId);
+
+                    let lastClientY = e.clientY;
+                    let autoScrollRaf = null;
+
+                    const evaluateSwap = (clientY) => {
+                        const rows = Array.from(list.querySelectorAll('.studio-proj-row'));
+                        const currentIdx = rows.indexOf(draggedRow);
+                        if (currentIdx === -1) return;
+
+                        let targetIdx = currentIdx;
+                        for (let i = 0; i < rows.length; i++) {
+                            if (rows[i] === draggedRow) continue;
+                            const rect = rows[i].getBoundingClientRect();
+                            const midY = rect.top + rect.height * 0.5;
+                            if (i < currentIdx && clientY < midY) {
+                                targetIdx = i;
+                                break;
+                            }
+                            if (i > currentIdx && clientY > midY) {
+                                targetIdx = i;
+                            }
+                        }
+
+                        if (targetIdx !== currentIdx) {
+                            const siblings = rows.filter(r => r !== draggedRow);
+                            const prevTops = new Map(siblings.map(r => [r, r.getBoundingClientRect().top]));
+
+                            if (targetIdx < currentIdx) {
+                                list.insertBefore(draggedRow, rows[targetIdx]);
+                            } else {
+                                rows[targetIdx].after(draggedRow);
+                            }
+
+                            animateSiblingFlip(siblings, prevTops);
+                            const orderedIds = syncRowOrderBadges();
+                            reorderCubesRealtime(orderedIds, draggedId, true);
+                        }
+                    };
+
+                    const stepAutoScroll = () => {
+                        if (!scrollBody) return;
+                        const rect = scrollBody.getBoundingClientRect();
+                        const edgeZone = 58;
+                        let scrollDelta = 0;
+                        if (lastClientY < rect.top + edgeZone) {
+                            scrollDelta = -Math.max(2, ((rect.top + edgeZone - lastClientY) / edgeZone) * 11);
+                        } else if (lastClientY > rect.bottom - edgeZone) {
+                            scrollDelta = Math.max(2, ((lastClientY - (rect.bottom - edgeZone)) / edgeZone) * 11);
+                        }
+                        if (scrollDelta !== 0) {
+                            scrollBody.scrollTop += scrollDelta;
+                            evaluateSwap(lastClientY);
+                        }
+                        autoScrollRaf = requestAnimationFrame(stepAutoScroll);
+                    };
+                    autoScrollRaf = requestAnimationFrame(stepAutoScroll);
+
+                    const onPointerMove = (moveEvent) => {
+                        if (moveEvent.pointerId !== pointerId) return;
+                        moveEvent.preventDefault();
+                        lastClientY = moveEvent.clientY;
+                        evaluateSwap(moveEvent.clientY);
+                    };
+
+                    const finishDrag = (endEvent) => {
+                        if (endEvent.pointerId !== pointerId) return;
+                        window.removeEventListener('pointermove', onPointerMove);
+                        window.removeEventListener('pointerup', finishDrag);
+                        window.removeEventListener('pointercancel', finishDrag);
+                        if (autoScrollRaf) cancelAnimationFrame(autoScrollRaf);
+                        try { handle.releasePointerCapture(pointerId); } catch (_) {}
+
+                        draggedRow.classList.remove('is-dragging');
+                        document.body.style.cursor = '';
+                        setDraggedCubeHighlight(null);
+
+                        const finalRows = Array.from(list.querySelectorAll('.studio-proj-row'));
+                        const finalIndex = finalRows.indexOf(draggedRow);
+                        if (finalIndex !== -1 && finalIndex !== initialIndex) {
+                            showToast(`FLIPPED TO CUBE #${String(finalIndex + 1).padStart(2, '0')}`);
+                        }
+                    };
+
+                    window.addEventListener('pointermove', onPointerMove, { passive: false });
+                    window.addEventListener('pointerup', finishDrag);
+                    window.addEventListener('pointercancel', finishDrag);
+                });
             });
 
             list.querySelectorAll('.order-input').forEach(input => {
                 input.addEventListener('change', (e) => {
                     const id = e.target.getAttribute('data-id');
-                    const newOrder = Math.max(1, parseInt(e.target.value, 10) || 1);
-                    const target = portfolioProjects.find(p => p.id === id);
-                    if (target) {
-                        target.order = newOrder;
-                        buildEscherPortfolioLattice(false);
-                        renderStudioProjectList();
-                        showToast(`REORDERED TO #${String(newOrder).padStart(2, '0')}`);
-                    }
+                    const requestedPos = Math.max(1, Math.min(portfolioProjects.length, parseInt(e.target.value, 10) || 1));
+                    const currentIds = Array.from(list.querySelectorAll('.studio-proj-row')).map(r => r.dataset.id);
+                    const filteredIds = currentIds.filter(itemId => itemId !== id);
+                    filteredIds.splice(requestedPos - 1, 0, id);
+
+                    reorderCubesRealtime(filteredIds, id, false);
+                    renderStudioProjectList();
+                    showToast(`FLIPPED TO CUBE #${String(requestedPos).padStart(2, '0')}`);
                 });
             });
 
@@ -3040,6 +3428,7 @@
                     }
                     const id = e.currentTarget.getAttribute('data-remove-id');
                     portfolioProjects = portfolioProjects.filter(p => p.id !== id);
+                    portfolioProjects.forEach((p, i) => { p.order = i + 1; });
                     closeProjectInspector();
                     buildEscherPortfolioLattice(false);
                     renderStudioProjectList();
@@ -3644,9 +4033,13 @@
                 // Cubic ease-out for crisp architectural locking
                 const ease = 1 - Math.pow(1 - cn.assemblyProgress, 3);
 
-                // Smoothly glide base lattice position (e.g. during Invert or Flip L/R)
-                cn.currentBasePos.lerp(cn.targetPos, 0.09);
-                cn.focusOffset.lerp(cn.targetFocusOffset, 0.09);
+                // Smoothly glide base lattice position (e.g. during Invert, Flip L/R, or Real-Time Drag Reorder)
+                const isFlipping = cn.flipBoost > 0;
+                if (isFlipping) {
+                    cn.flipBoost = Math.max(0, cn.flipBoost - 0.016);
+                }
+                cn.currentBasePos.lerp(cn.targetPos, isFlipping ? 0.14 : 0.09);
+                cn.focusOffset.lerp(cn.targetFocusOffset, isFlipping ? 0.12 : 0.09);
 
                 const assembledPos = new THREE.Vector3().lerpVectors(cn.startPos, cn.currentBasePos, ease);
                 cn.group.position.copy(assembledPos).add(cn.focusOffset);
@@ -3661,8 +4054,9 @@
                 } else {
                     cn.spinVelocityY = 0;
                 }
-                cn.spinY += (cn.targetSpinY - cn.spinY) * 0.085;
-                cn.spinX += (cn.targetSpinX - cn.spinX) * 0.085;
+                const spinLerp = isFlipping ? 0.12 : 0.085;
+                cn.spinY += (cn.targetSpinY - cn.spinY) * spinLerp;
+                cn.spinX += (cn.targetSpinX - cn.spinX) * spinLerp;
                 cn.group.rotation.y = cn.spinY;
                 cn.group.rotation.x = cn.spinX;
 
