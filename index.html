@@ -490,7 +490,7 @@
         <div class="w-1 h-28 sm:h-36 rounded-full bg-stone-500/20 overflow-hidden relative">
             <div id="list-flow-thumb" class="w-full h-7 rounded-full bg-blue-700 transition-transform duration-100" style="transform: translateY(0px);"></div>
         </div>
-        <span id="list-flow-counter" class="mono text-[9px] font-bold uppercase opacity-65">01/20</span>
+        <span id="list-flow-counter" class="mono text-[9px] font-bold uppercase opacity-65">01/22</span>
     </div>
 
     <!-- Dynamic Hover SVG Leader Line & Callout Overlay -->
@@ -858,7 +858,7 @@
                 <button id="footer-prev-btn" class="ctrl-btn py-2 px-3">
                     <span>← Slide Prev Node</span>
                 </button>
-                <span id="inspector-progress-label" class="mono text-[10px] font-bold uppercase opacity-70">NODE 01 / 20</span>
+                <span id="inspector-progress-label" class="mono text-[10px] font-bold uppercase opacity-70">NODE 01 / 22</span>
                 <button id="footer-next-btn" class="px-3.5 py-2 rounded-md bg-blue-700 text-white hover:bg-blue-800 transition mono text-[10px] font-bold uppercase tracking-wider cursor-pointer">
                     <span>Slide Next Node →</span>
                 </button>
@@ -920,7 +920,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase tracking-wider opacity-70 mb-1">Forced Order #</label>
-                        <input id="new-proj-order" type="number" min="1" value="21" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 focus:outline-none focus:border-stone-800 bg-white/90 text-stone-900">
+                        <input id="new-proj-order" type="number" min="1" value="23" class="w-full text-xs px-2.5 py-1.5 rounded border border-stone-300 focus:outline-none focus:border-stone-800 bg-white/90 text-stone-900">
                     </div>
                 </div>
                 <div>
@@ -944,7 +944,7 @@
             <div>
                 <div class="flex items-center justify-between gap-2 mb-1.5">
                     <span class="mono text-[10px] font-bold uppercase tracking-wider opacity-70">3. Active Portfolio Cubes</span>
-                    <span id="cube-count-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-stone-500/20 font-bold">20 CUBES</span>
+                    <span id="cube-count-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-stone-500/20 font-bold">22 CUBES</span>
                 </div>
                 <p class="mono text-[9px] uppercase tracking-wider opacity-60 mb-2">
                     Drag <span class="font-extrabold text-blue-700 dark:text-blue-400">⋮⋮</span> handle to flip cubes into new positions in real time
@@ -1086,7 +1086,7 @@
         const container = document.getElementById('canvas-container');
         const toast = document.getElementById('toast');
 
-        // --- Kai Kleinbard Real 20-Cube Portfolio Projects ---
+        // --- Kai Kleinbard Real 22-Cube Portfolio Projects ---
         let portfolioProjects = [
             {
                 id: 'kaik-home',
@@ -1234,10 +1234,34 @@
                 previewDataUrl: './assets/projects/mono-glyph.jpg'
             },
             {
-                id: 'dance-journal',
+                id: 'differential-flow',
                 order: 13,
+                title: 'DIFFERENTIAL_FLOW // ∂θ/∂t',
+                tag: 'OPTICAL FLOW + AUDIO // 13',
+                url: 'https://cre8ture.github.io/pointed-flow/',
+                desc: 'Browser-based 60 FPS computer vision and generative audiovisual instrument built in zero-build vanilla JS and Tone.js. Runs Shi-Tomasi corner detection and iterative Lucas-Kanade optical flow over procedural specimens, uploaded videos, or live webcam feeds—computing kinematic derivatives (velocity, acceleration, jerk, angular velocity, phase coherence), localized ROI shaders (X-Ray, Bayer dither, halftone, mosaic), and an image-to-audio score with PNG/SVG/WEBM/JSON export.',
+                type: 'gyro_core',
+                previewImage: './assets/projects/differential-flow.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/differential-flow.jpg'
+            },
+            {
+                id: 'glacial-island',
+                order: 14,
+                title: 'WATER CONSERVATION // GLACIAL ISLAND',
+                tag: '3D STRATA + AUDIO // 14',
+                url: 'https://cre8ture.github.io/glacier/',
+                desc: 'Real-time 3D architectural landscape study and generative audiovisual piece (Lost Landscapes · Drawing Glaciers) built with Three.js and Tone.js. Uses seeded fBm and ridged multifractal noise to sculpt an exploded 4-layer alpine glacier (vertex-colored ice mesh, smoothed contours, LiDAR point cloud, and branching hydrology datum) with clickable 3D specimen mini-viewports, audio-reactive projection beams, and Inception Orbit.',
+                type: 'aqueduct_arches',
+                previewImage: './assets/projects/glacial-island.jpg',
+                customTexture: null,
+                previewDataUrl: './assets/projects/glacial-island.jpg'
+            },
+            {
+                id: 'dance-journal',
+                order: 15,
                 title: 'DANCE JOURNAL // EMBODIED AI',
-                tag: 'POSE + AUDIO // 13',
+                tag: 'POSE + AUDIO // 15',
                 url: 'https://dance-journal.kaik.space/',
                 desc: 'Embodied AI experiment translating real-time body posture and voice into a generative WebGL canvas and spatial audio instrument using pose estimation.',
                 type: 'gyro_core',
@@ -1247,9 +1271,9 @@
             },
             {
                 id: 'p2p-face-track-sound',
-                order: 14,
+                order: 16,
                 title: 'P2P FACE TRACK // AUDIO ROOM',
-                tag: 'EMBODIED P2P // 14',
+                tag: 'EMBODIED P2P // 16',
                 url: '',
                 isPrivate: true,
                 desc: 'Browser-based peer-to-peer audiovisual experiment combining real-time facial landmark tracking, emotion and movement detection, generative audio synthesis, and collaborative P2P audio rooms over a lightweight Node.js server (JavaScript 90.2%, CSS 5%, HTML 4.8% — private repo, no public UI).',
@@ -1260,9 +1284,9 @@
             },
             {
                 id: 'tangle-draw',
-                order: 15,
+                order: 17,
                 title: 'TANGLE DRAW // AUDIO CANVAS',
-                tag: 'GENERATIVE ART // 15',
+                tag: 'GENERATIVE ART // 17',
                 url: 'https://kai4avaya.github.io/tangle-draw/',
                 desc: 'Canvas-based calligraphic generative art paired with Web Audio API synthesis that tracks and sonifies the geometry of your drawn tangles in real time.',
                 type: 'strata_pipes',
@@ -1272,9 +1296,9 @@
             },
             {
                 id: 'flowers',
-                order: 16,
+                order: 18,
                 title: 'FLOWERS // 3D AUDIO SHAPES',
-                tag: 'WEB AUDIO 3D // 16',
+                tag: 'WEB AUDIO 3D // 18',
                 url: 'https://kai4avaya.github.io/flowers/',
                 desc: 'Interactive Three.js generative music garden where sculptural wireframe blooms respond to touch and motion with resonant Web Audio harmonies.',
                 type: 'aqueduct_arches',
@@ -1284,9 +1308,9 @@
             },
             {
                 id: 'water-flow',
-                order: 17,
+                order: 19,
                 title: 'WATER FLOW // MEDITATIVE',
-                tag: 'ENVIRONMENT // 17',
+                tag: 'ENVIRONMENT // 19',
                 url: 'https://kai4avaya.github.io/water-flow/',
                 desc: 'Calming monochromatic paper-shaded river experiment combining procedural linework, animated birds, and generative nature audio.',
                 type: 'tunnels_cutaway',
@@ -1296,9 +1320,9 @@
             },
             {
                 id: 'ball-roll',
-                order: 18,
+                order: 20,
                 title: 'BALL ROLL // KATAMARI 3D',
-                tag: 'PHYSICS GAME // 18',
+                tag: 'PHYSICS GAME // 20',
                 url: 'https://kai4avaya.github.io/ball-roll/',
                 desc: 'Three.js sketch-style physics game inspired by Katamari Damacy where you gather geometric debris while leaving a sumi-e ink imprint trail.',
                 type: 'reactor_array',
@@ -1308,9 +1332,9 @@
             },
             {
                 id: 'factory',
-                order: 19,
+                order: 21,
                 title: 'FACTORY // CLOCKWORK ASSEMBLY',
-                tag: '3D MOTION // 19',
+                tag: '3D MOTION // 21',
                 url: 'https://kai4avaya.github.io/factory/',
                 desc: 'Scroll-driven Echochrome-inspired clockwork machine exploring time-scrubbed mechanical assembly and disassembly with Three.js, Anime.js, and Web Audio.',
                 type: 'escher_stairs',
@@ -1320,9 +1344,9 @@
             },
             {
                 id: 'ascii-cube',
-                order: 20,
+                order: 22,
                 title: 'CUBE CUBE HI // ASCII 3D',
-                tag: 'SHADER STUDY // 20',
+                tag: 'SHADER STUDY // 22',
                 url: 'https://kai4avaya.github.io/cube/',
                 desc: 'Ghostty-inspired real-time dancing 3D ASCII cube streaming high-contrast character shaders that respond dynamically to cursor movement.',
                 type: 'memory_towers',
@@ -3050,6 +3074,14 @@
             }
         }
 
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
         function renderListFlowCards() {
             const overlay = document.getElementById('list-flow-overlay');
             if (!overlay) return;
@@ -3075,12 +3107,12 @@
                     <div class="flex items-center justify-between gap-2 mb-1.5">
                         <div class="flex items-center gap-2 min-w-0">
                             <span class="mono text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-blue-700 text-white shrink-0">#${orderNum}</span>
-                            <span class="mono text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300 truncate">${proj.tag}</span>
+                            <span class="mono text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300 truncate">${escapeHtml(proj.tag)}</span>
                         </div>
                         ${badgeExtra}
                     </div>
-                    <h3 class="mono text-sm sm:text-base font-black uppercase tracking-tight leading-snug truncate">${proj.title}</h3>
-                    <p class="list-flow-desc text-[11px] sm:text-xs opacity-80 leading-relaxed mt-1.5">${proj.desc}</p>
+                    <h3 class="mono text-sm sm:text-base font-black uppercase tracking-tight leading-snug truncate">${escapeHtml(proj.title)}</h3>
+                    <p class="list-flow-desc text-[11px] sm:text-xs opacity-80 leading-relaxed mt-1.5">${escapeHtml(proj.desc)}</p>
                     <div class="mt-2.5 pt-2 border-t border-stone-400/25 flex items-center justify-between gap-2">
                         <span class="mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">Open Project Dossier →</span>
                         <span class="mono text-[9px] uppercase opacity-55 hidden sm:inline">CLICK CARD OR CUBE</span>
