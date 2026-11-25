@@ -26,15 +26,23 @@ jobs:
         run: pip install --no-cache-dir google-analytics-data
 
       - name: Sync GA4 metrics into analytics/data.json
-        if: ${{ secrets.GA_SERVICE_ACCOUNT_JSON != '' }}
         env:
           GA_SERVICE_ACCOUNT_JSON: ${{ secrets.GA_SERVICE_ACCOUNT_JSON }}
           GA4_PROPERTY_ID: "565841989"
-        run: python3 scripts/sync_analytics.py
+        run: |
+          if [ -z "$GA_SERVICE_ACCOUNT_JSON" ]; then
+            echo "GA_SERVICE_ACCOUNT_JSON secret not set; skipping sync."
+            exit 0
+          fi
+          python3 scripts/sync_analytics.py
 
       - name: Commit and publish to main & gh-pages
-        if: ${{ secrets.GA_SERVICE_ACCOUNT_JSON != '' }}
+        env:
+          GA_SERVICE_ACCOUNT_JSON: ${{ secrets.GA_SERVICE_ACCOUNT_JSON }}
         run: |
+          if [ -z "$GA_SERVICE_ACCOUNT_JSON" ]; then
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add analytics/data.json
