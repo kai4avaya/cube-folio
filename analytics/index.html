@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics — Kai Kleinbard Portfolio</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#e6e3dd">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #e6e3dd;
+            --surface: rgba(247, 245, 240, 0.92);
+            --surface-soft: rgba(250, 248, 244, 0.72);
+            --border: rgba(28, 25, 23, 0.16);
+            --text-primary: #141413;
+            --accent: #1d4ed8;
+            --shadow: 4px 4px 0px rgba(20, 20, 19, 0.08);
+        }
+        body.obsidian-mode {
+            --bg-primary: #111113;
+            --surface: rgba(22, 22, 26, 0.92);
+            --surface-soft: rgba(28, 28, 34, 0.78);
+            --border: rgba(147, 197, 253, 0.20);
+            --text-primary: #f5f5f4;
+            --accent: #60a5fa;
+            --shadow: 4px 4px 0px rgba(0, 0, 0, 0.55);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .brutalist {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            letter-spacing: -0.05em;
+            line-height: 0.9;
+            font-weight: 900;
+        }
+        .card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            box-shadow: var(--shadow);
+            border-radius: 12px;
+        }
+        .pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 11px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: var(--surface-soft);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .pill-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .pill-btn.active {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            color: #ffffff;
+        }
+        .site-row {
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.14s ease;
+        }
+        .site-row:last-child { border-bottom: none; }
+        .site-row:hover { background: rgba(29, 78, 216, 0.055); }
+        body.obsidian-mode .site-row:hover { background: rgba(96, 165, 250, 0.09); }
+        #sparkline-svg text {
+            font-family: 'JetBrains Mono', monospace;
+            fill: currentColor;
+            opacity: 0.55;
+            font-size: 9px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="max-w-5xl mx-auto px-4 sm:px-7 py-6 sm:py-9 space-y-6">
+
+        <!-- Top Utility Bar -->
+        <nav class="flex flex-wrap items-center justify-between gap-3">
+            <a href="../" class="pill-btn no-underline">
+                <span>← Cubic Portfolio</span>
+            </a>
+            <div class="flex flex-wrap items-center gap-1.5">
+                <div class="inline-flex rounded-lg overflow-hidden border border-stone-400/35">
+                    <button id="range-7d" class="pill-btn rounded-none border-0" data-range="d7">7D</button>
+                    <button id="range-30d" class="pill-btn active rounded-none border-0" data-range="d30">30D</button>
+                </div>
+                <button id="toggle-snippet-btn" class="pill-btn">+ Add Site</button>
+                <button id="toggle-theme-btn" class="pill-btn">Scheme: Alabaster</button>
+            </div>
+        </nav>
+
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
+            <div>
+                <h1 class="brutalist text-4xl sm:text-6xl uppercase tracking-tighter">ANALYTICS</h1>
+                <div class="flex flex-wrap items-center gap-2.5 mt-2.5">
+                    <span class="inline-block w-5 h-2 bg-blue-700"></span>
+                    <p class="mono text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] opacity-80">
+                        KAI KLEINBARD // <span id="meta-mid">G-NVX0XJGFFL</span> // AUTO-DISCOVERY
+                    </p>
+                </div>
+            </div>
+            <div class="text-left sm:text-right mono text-[10px] uppercase tracking-wider opacity-65 space-y-0.5">
+                <div id="sync-status">SYNCING TELEMETRY...</div>
+                <div id="property-label">GA4 PROPERTY // 565841989</div>
+            </div>
+        </header>
+
+        <!-- Collapsible 1-Line Auto-Add Site Snippet -->
+        <section id="snippet-panel" class="hidden card p-4 sm:p-5 space-y-2.5 border-l-4 border-l-blue-700">
+            <div class="flex items-center justify-between gap-2">
+                <span class="mono text-[10px] font-extrabold uppercase tracking-widest text-blue-700 dark:text-blue-400">
+                    Auto-Track Any New Site (1 Line in &lt;head&gt;)
+                </span>
+                <button id="copy-snippet-btn" class="pill-btn active">Copy Tag</button>
+            </div>
+            <p class="text-xs opacity-75 leading-relaxed">
+                Paste this into any new project's <code>&lt;head&gt;</code>. As soon as it receives its first visit, the next GA4 sync automatically discovers its hostname/path and adds it to the table below.
+            </p>
+            <pre id="snippet-code" class="mono text-[11px] sm:text-xs px-3 py-2.5 rounded-lg bg-stone-900/10 dark:bg-black/40 border border-stone-400/30 overflow-x-auto select-all">&lt;script defer src="https://cube.kaik.space/analytics.js"&gt;&lt;/script&gt;</pre>
+        </section>
+
+        <!-- 4 Minimal KPI Cards -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="card p-4">
+                <div class="mono text-[10px] font-bold uppercase tracking-widest opacity-60">Page Views</div>
+                <div id="kpi-views" class="brutalist text-3xl sm:text-4xl mt-1.5">—</div>
+                <div id="kpi-views-sub" class="mono text-[10px] uppercase opacity-60 mt-1">Last 30 days</div>
+            </div>
+            <div class="card p-4">
+                <div class="mono text-[10px] font-bold uppercase tracking-widest opacity-60">Active Users</div>
+                <div id="kpi-users" class="brutalist text-3xl sm:text-4xl mt-1.5">—</div>
+                <div id="kpi-users-sub" class="mono text-[10px] uppercase opacity-60 mt-1">Unique visitors</div>
+            </div>
+            <div class="card p-4">
+                <div class="mono text-[10px] font-bold uppercase tracking-widest opacity-60">Sessions</div>
+                <div id="kpi-sessions" class="brutalist text-3xl sm:text-4xl mt-1.5">—</div>
+                <div class="mono text-[10px] uppercase opacity-60 mt-1">Cross-site journeys</div>
+            </div>
+            <div class="card p-4">
+                <div class="mono text-[10px] font-bold uppercase tracking-widest opacity-60">Tracked Sites</div>
+                <div id="kpi-sites" class="brutalist text-3xl sm:text-4xl mt-1.5 text-blue-700 dark:text-blue-400">—</div>
+                <div id="kpi-sites-sub" class="mono text-[10px] uppercase opacity-60 mt-1">Auto-discovered + hub</div>
+            </div>
+        </section>
+
+        <!-- Daily Views & Users Sparkline -->
+        <section class="card p-4 sm:p-5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                    <span class="mono text-[10px] font-extrabold uppercase tracking-widest text-blue-700 dark:text-blue-400">Daily Traffic Trend</span>
+                    <span class="inline-flex items-center gap-1.5 mono text-[9px] uppercase opacity-70">
+                        <span class="w-2.5 h-0.5 bg-blue-700 inline-block"></span>Views
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 mono text-[9px] uppercase opacity-70">
+                        <span class="w-2.5 h-0.5 bg-stone-500 inline-block"></span>Users
+                    </span>
+                </div>
+                <div id="chart-hover-readout" class="mono text-[10px] font-bold uppercase opacity-70">Hover chart to inspect day</div>
+            </div>
+            <div class="w-full h-36 sm:h-44 relative">
+                <svg id="sparkline-svg" class="w-full h-full overflow-visible" viewBox="0 0 800 160" preserveAspectRatio="none"></svg>
+            </div>
+        </section>
+
+        <!-- Auto-Discovered Portfolio Sites Table -->
+        <section class="card overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-stone-400/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="mono text-xs font-extrabold uppercase tracking-widest text-blue-700 dark:text-blue-400">
+                        Portfolio Sites (Auto-Populated)
+                    </h2>
+                    <p class="mono text-[10px] opacity-60 mt-0.5">
+                        Every site loading <code>analytics.js</code> appears automatically by hostname / path
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <input id="site-search" type="search" placeholder="Filter sites..." class="mono text-[11px] px-2.5 py-1.5 rounded-lg border border-stone-400/35 bg-white/75 dark:bg-stone-900/75 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-blue-700 w-36 sm:w-44" />
+                    <select id="site-sort" class="mono text-[10px] font-bold uppercase px-2 py-1.5 rounded-lg border border-stone-400/35 bg-white/75 dark:bg-stone-900/75 text-stone-900 dark:text-stone-100 focus:outline-none">
+                        <option value="views">Sort: Views</option>
+                        <option value="users">Sort: Users</option>
+                        <option value="name">Sort: Name</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-12 px-4 sm:px-5 py-2 border-b border-stone-400/20 mono text-[9px] font-bold uppercase tracking-widest opacity-55">
+                <div class="col-span-6 sm:col-span-6">Site / Project</div>
+                <div class="col-span-2 text-right">Views</div>
+                <div class="col-span-2 text-right">Users</div>
+                <div class="col-span-2 text-right">Avg Time</div>
+            </div>
+
+            <div id="sites-list" class="divide-y divide-stone-400/15"></div>
+        </section>
+
+        <!-- Compact 2-Column Strip: Sources & Portfolio Events -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="card p-4 sm:p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="mono text-[10px] font-extrabold uppercase tracking-widest text-blue-700 dark:text-blue-400">Top Sources (30D)</span>
+                    <span class="mono text-[9px] uppercase opacity-55">Sessions</span>
+                </div>
+                <div id="sources-list" class="space-y-2"></div>
+            </div>
+
+            <div class="card p-4 sm:p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="mono text-[10px] font-extrabold uppercase tracking-widest text-blue-700 dark:text-blue-400">Events (30D)</span>
+                    <span class="mono text-[9px] uppercase opacity-55">Count</span>
+                </div>
+                <div id="events-list" class="space-y-2"></div>
+            </div>
+        </section>
+
+        <!-- Minimal Footer -->
+        <footer class="pt-2 pb-6 flex flex-wrap items-center justify-between gap-2 mono text-[10px] uppercase tracking-wider opacity-55">
+            <span>GA4 READ-ONLY FEED // NO CREDENTIALS IN CLIENT</span>
+            <span>REFRESH: <code>python3 scripts/sync_analytics.py --push</code></span>
+        </footer>
+    </div>
+
+    <script>
+        let analyticsData = null;
+        let activeRange = 'd30';
+        let isObsidian = localStorage.getItem('kai-analytics-theme') === 'obsidian';
+
+        function applyTheme() {
+            document.documentElement.classList.toggle('dark', isObsidian);
+            document.body.classList.toggle('obsidian-mode', isObsidian);
+            document.getElementById('toggle-theme-btn').textContent = isObsidian ? 'Scheme: Obsidian' : 'Scheme: Alabaster';
+        }
+        applyTheme();
+
+        document.getElementById('toggle-theme-btn').addEventListener('click', () => {
+            isObsidian = !isObsidian;
+            localStorage.setItem('kai-analytics-theme', isObsidian ? 'obsidian' : 'alabaster');
+            applyTheme();
+        });
+
+        document.getElementById('toggle-snippet-btn').addEventListener('click', () => {
+            document.getElementById('snippet-panel').classList.toggle('hidden');
+        });
+
+        document.getElementById('copy-snippet-btn').addEventListener('click', async () => {
+            const tag = '<script defer src="https://cube.kaik.space/analytics.js"><\/script>';
+            try {
+                await navigator.clipboard.writeText(tag);
+            } catch (_) {
+                const ta = document.createElement('textarea');
+                ta.value = tag;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+            const btn = document.getElementById('copy-snippet-btn');
+            btn.textContent = 'Copied ✓';
+            setTimeout(() => { btn.textContent = 'Copy Tag'; }, 1800);
+        });
+
+        function esc(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function fmtNum(n) {
+            return Number(n || 0).toLocaleString();
+        }
+
+        function fmtSec(sec) {
+            const s = Math.round(Number(sec || 0));
+            if (s <= 0) return '—';
+            if (s < 60) return `${s}s`;
+            return `${Math.floor(s / 60)}m ${s % 60}s`;
+        }
+
+        function renderSparkline() {
+            const svg = document.getElementById('sparkline-svg');
+            const readout = document.getElementById('chart-hover-readout');
+            if (!analyticsData || !Array.isArray(analyticsData.daily)) return;
+
+            const series = activeRange === 'd7'
+                ? analyticsData.daily.slice(-7)
+                : analyticsData.daily;
+
+            const W = 800, H = 160, padL = 8, padR = 8, padT = 14, padB = 22;
+            const plotW = W - padL - padR;
+            const plotH = H - padT - padB;
+            const maxVal = Math.max(4, ...series.map(d => Math.max(d.views, d.users)));
+
+            const xAt = (i) => padL + (series.length <= 1 ? plotW / 2 : (i / (series.length - 1)) * plotW);
+            const yAt = (v) => padT + plotH - (v / maxVal) * plotH;
+
+            const viewPts = series.map((d, i) => `${xAt(i).toFixed(1)},${yAt(d.views).toFixed(1)}`);
+            const userPts = series.map((d, i) => `${xAt(i).toFixed(1)},${yAt(d.users).toFixed(1)}`);
+            const areaPath = `M ${xAt(0).toFixed(1)},${(padT + plotH).toFixed(1)} L ${viewPts.join(' L ')} L ${xAt(series.length - 1).toFixed(1)},${(padT + plotH).toFixed(1)} Z`;
+
+            const gridLines = [0, 0.5, 1].map(f => {
+                const y = (padT + plotH * (1 - f)).toFixed(1);
+                return `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="currentColor" stroke-opacity="0.10" stroke-dasharray="3 3" />`;
+            }).join('');
+
+            const firstLabel = series[0]?.date?.slice(5) || '';
+            const midLabel = series[Math.floor(series.length / 2)]?.date?.slice(5) || '';
+            const lastLabel = series[series.length - 1]?.date?.slice(5) || '';
+
+            const hitCols = series.map((d, i) => {
+                const cx = xAt(i);
+                const colW = plotW / Math.max(1, series.length);
+                return `<rect class="spark-hit" data-i="${i}" x="${(cx - colW / 2).toFixed(1)}" y="0" width="${colW.toFixed(1)}" height="${H}" fill="transparent" style="cursor:crosshair" />`;
+            }).join('');
+
+            svg.innerHTML = `
+                <defs>
+                    <linearGradient id="viewGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#1d4ed8" stop-opacity="0.24"/>
+                        <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.01"/>
+                    </linearGradient>
+                </defs>
+                ${gridLines}
+                <path d="${areaPath}" fill="url(#viewGrad)" />
+                <polyline fill="none" stroke="currentColor" stroke-opacity="0.4" stroke-width="1.6" stroke-dasharray="4 3" points="${userPts.join(' ')}" />
+                <polyline fill="none" stroke="#1d4ed8" stroke-width="2.4" points="${viewPts.join(' ')}" />
+                <line id="hover-vline" x1="0" y1="${padT}" x2="0" y2="${padT + plotH}" stroke="#1d4ed8" stroke-width="1.2" stroke-dasharray="2 2" opacity="0" />
+                <circle id="hover-dot" cx="0" cy="0" r="4" fill="#1d4ed8" opacity="0" />
+                <text x="${padL}" y="${H - 4}">${esc(firstLabel)}</text>
+                <text x="${(W / 2).toFixed(0)}" y="${H - 4}" text-anchor="middle">${esc(midLabel)}</text>
+                <text x="${W - padR}" y="${H - 4}" text-anchor="end">${esc(lastLabel)}</text>
+                ${hitCols}
+            `;
+
+            const vline = svg.querySelector('#hover-vline');
+            const dot = svg.querySelector('#hover-dot');
+            svg.querySelectorAll('.spark-hit').forEach(rect => {
+                rect.addEventListener('pointerenter', () => {
+                    const i = Number(rect.getAttribute('data-i'));
+                    const d = series[i];
+                    if (!d) return;
+                    const cx = xAt(i).toFixed(1);
+                    const cy = yAt(d.views).toFixed(1);
+                    vline.setAttribute('x1', cx);
+                    vline.setAttribute('x2', cx);
+                    vline.setAttribute('opacity', '0.8');
+                    dot.setAttribute('cx', cx);
+                    dot.setAttribute('cy', cy);
+                    dot.setAttribute('opacity', '1');
+                    readout.textContent = `${d.date} // ${fmtNum(d.views)} VIEWS · ${fmtNum(d.users)} USERS`;
+                });
+            });
+            svg.addEventListener('pointerleave', () => {
+                vline.setAttribute('opacity', '0');
+                dot.setAttribute('opacity', '0');
+                readout.textContent = 'Hover chart to inspect day';
+            });
+        }
+
+        function renderSites() {
+            const listEl = document.getElementById('sites-list');
+            if (!analyticsData) return;
+
+            const q = (document.getElementById('site-search').value || '').trim().toLowerCase();
+            const sortBy = document.getElementById('site-sort').value;
+
+            let rows = [...analyticsData.sites];
+            if (q) {
+                rows = rows.filter(s =>
+                    s.key.toLowerCase().includes(q) ||
+                    s.title.toLowerCase().includes(q) ||
+                    s.tag.toLowerCase().includes(q)
+                );
+            }
+
+            rows.sort((a, b) => {
+                if (sortBy === 'name') return a.title.localeCompare(b.title);
+                if (sortBy === 'users') return (b[activeRange].users - a[activeRange].users) || (b[activeRange].views - a[activeRange].views);
+                return (b[activeRange].views - a[activeRange].views) || a.key.localeCompare(b.key);
+            });
+
+            const maxViews = Math.max(1, ...rows.map(r => r[activeRange].views));
+
+            if (rows.length === 0) {
+                listEl.innerHTML = '<div class="p-6 text-center mono text-xs opacity-60">No matching sites</div>';
+                return;
+            }
+
+            listEl.innerHTML = rows.map(s => {
+                const m = s[activeRange];
+                const barPct = m.views > 0 ? Math.max(3, Math.round((m.views / maxViews) * 100)) : 0;
+                const badge = s.autoDiscovered
+                    ? '<span class="mono text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-blue-700 text-white">AUTO</span>'
+                    : (s.status === 'live'
+                        ? '<span class="mono text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-600/20 text-emerald-700 dark:text-emerald-300">LIVE</span>'
+                        : '<span class="mono text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-stone-500/15 opacity-65">READY</span>');
+
+                return `
+                    <div class="site-row grid grid-cols-12 items-center gap-2 px-4 sm:px-5 py-3">
+                        <div class="col-span-6 min-w-0 pr-2">
+                            <div class="flex items-center gap-2">
+                                ${badge}
+                                <a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" class="mono text-xs font-extrabold uppercase truncate hover:text-blue-700 dark:hover:text-blue-400 transition">
+                                    ${esc(s.title)}
+                                </a>
+                            </div>
+                            <div class="mono text-[10px] opacity-60 truncate mt-0.5">${esc(s.key)} ↗</div>
+                            <div class="w-full h-1 rounded-full bg-stone-500/15 mt-1.5 overflow-hidden">
+                                <div class="h-full rounded-full bg-blue-700 transition-all duration-300" style="width:${barPct}%"></div>
+                            </div>
+                        </div>
+                        <div class="col-span-2 text-right mono text-xs sm:text-sm font-extrabold">${fmtNum(m.views)}</div>
+                        <div class="col-span-2 text-right mono text-xs opacity-85">${fmtNum(m.users)}</div>
+                        <div class="col-span-2 text-right mono text-[11px] opacity-70">${fmtSec(m.avgEngagementSec)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSideCards() {
+            const srcEl = document.getElementById('sources-list');
+            const evtEl = document.getElementById('events-list');
+
+            const sources = analyticsData.sources || [];
+            if (sources.length === 0) {
+                srcEl.innerHTML = '<div class="mono text-[11px] opacity-55 py-2">Awaiting first sessions from GA4...</div>';
+            } else {
+                const maxS = Math.max(1, ...sources.map(x => x.sessions));
+                srcEl.innerHTML = sources.map(s => `
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between mono text-[11px]">
+                            <span class="truncate pr-2 font-semibold">${esc(s.source)}</span>
+                            <span class="font-extrabold shrink-0">${fmtNum(s.sessions)}</span>
+                        </div>
+                        <div class="w-full h-1 rounded-full bg-stone-500/15 overflow-hidden">
+                            <div class="h-full bg-blue-700/80 rounded-full" style="width:${Math.max(4, Math.round((s.sessions / maxS) * 100))}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const events = analyticsData.events || [];
+            if (events.length === 0) {
+                evtEl.innerHTML = '<div class="mono text-[11px] opacity-55 py-2">Awaiting first events (page_view, inspect_cube, launch_project)...</div>';
+            } else {
+                const maxE = Math.max(1, ...events.map(x => x.count));
+                evtEl.innerHTML = events.map(ev => `
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between mono text-[11px]">
+                            <span class="truncate pr-2 font-semibold">${esc(ev.name)}</span>
+                            <span class="font-extrabold shrink-0">${fmtNum(ev.count)}</span>
+                        </div>
+                        <div class="w-full h-1 rounded-full bg-stone-500/15 overflow-hidden">
+                            <div class="h-full bg-blue-700/80 rounded-full" style="width:${Math.max(4, Math.round((ev.count / maxE) * 100))}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function renderAll() {
+            if (!analyticsData) return;
+            const t = analyticsData.totals[activeRange] || { views: 0, users: 0, sessions: 0 };
+            document.getElementById('kpi-views').textContent = fmtNum(t.views);
+            document.getElementById('kpi-views-sub').textContent = activeRange === 'd7' ? 'Last 7 days' : 'Last 30 days';
+            document.getElementById('kpi-users').textContent = fmtNum(t.users);
+            document.getElementById('kpi-sessions').textContent = fmtNum(t.sessions);
+            document.getElementById('kpi-sites').textContent = fmtNum(analyticsData.siteCount);
+            document.getElementById('kpi-sites-sub').textContent = `${analyticsData.liveSiteCount} live · ${analyticsData.autoDiscoveredCount} auto`;
+            document.getElementById('meta-mid').textContent = analyticsData.measurementId || 'G-NVX0XJGFFL';
+            document.getElementById('property-label').textContent = `GA4 PROPERTY // ${analyticsData.propertyId || '565841989'}`;
+
+            if (analyticsData.generatedAt) {
+                const dt = new Date(analyticsData.generatedAt);
+                document.getElementById('sync-status').textContent = `SYNCED ${dt.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+            }
+
+            renderSparkline();
+            renderSites();
+            renderSideCards();
+        }
+
+        document.querySelectorAll('[data-range]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                activeRange = btn.getAttribute('data-range');
+                document.querySelectorAll('[data-range]').forEach(b => b.classList.toggle('active', b === btn));
+                renderAll();
+            });
+        });
+
+        document.getElementById('site-search').addEventListener('input', renderSites);
+        document.getElementById('site-sort').addEventListener('change', renderSites);
+
+        fetch('./data.json?v=' + Date.now())
+            .then(r => r.json())
+            .then(data => {
+                analyticsData = data;
+                renderAll();
+            })
+            .catch(() => {
+                document.getElementById('sync-status').textContent = 'DATA FEED UNAVAILABLE';
+            });
+    </script>
+</body>
+</html>

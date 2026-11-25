@@ -1,0 +1,546 @@
+{
+  "generatedAt": "2026-11-25T11:50:42.441067Z",
+  "propertyId": "565841989",
+  "measurementId": "G-NVX0XJGFFL",
+  "totals": {
+    "d30": {
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    "d7": {
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    }
+  },
+  "siteCount": 17,
+  "liveSiteCount": 0,
+  "autoDiscoveredCount": 0,
+  "daily": [
+    {
+      "date": "2026-10-27",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-10-28",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-10-29",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-10-30",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-10-31",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-01",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-02",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-03",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-04",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-05",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-06",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-07",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-08",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-09",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-10",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-11",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-12",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-13",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-14",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-15",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-16",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-17",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-18",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-19",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-20",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-21",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-22",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-23",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-24",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    },
+    {
+      "date": "2026-11-25",
+      "views": 0,
+      "users": 0,
+      "sessions": 0
+    }
+  ],
+  "sites": [
+    {
+      "key": "avatar.kaik.space",
+      "title": "K.AI // 3D AI AVATAR",
+      "tag": "WEBGL + LLM // 07",
+      "url": "https://avatar.kaik.space/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "cre8ture.github.io/ascii",
+      "title": "MONO // GLYPH \u2014 ASCII GALLERY",
+      "tag": "PROCEDURAL ASCII // 12",
+      "url": "https://cre8ture.github.io/ascii/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "cre8ture.github.io/floating-world",
+      "title": "FLOATING WORLD // 3D SANCTUARY",
+      "tag": "SPATIAL WORLD // 10",
+      "url": "https://cre8ture.github.io/floating-world/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "cre8ture.github.io/glacier",
+      "title": "WATER CONSERVATION // GLACIAL ISLAND",
+      "tag": "3D STRATA + AUDIO // 14",
+      "url": "https://cre8ture.github.io/glacier/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "cre8ture.github.io/mechanic-botanic",
+      "title": "MECHANIC BOTANIC // 3D HERBARIUM",
+      "tag": "THREE.JS + TONE.JS // 11",
+      "url": "https://cre8ture.github.io/mechanic-botanic/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "cre8ture.github.io/pointed-flow",
+      "title": "DIFFERENTIAL_FLOW // \u2202\u03b8/\u2202t",
+      "tag": "OPTICAL FLOW + AUDIO // 13",
+      "url": "https://cre8ture.github.io/pointed-flow/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "cre8ture.github.io/proj-machine",
+      "title": "PROJECT MACHINE // 3D BUILDER",
+      "tag": "3D ARCHITECTURE // 09",
+      "url": "https://cre8ture.github.io/proj-machine/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "cre8ture.github.io/resume-builder",
+      "title": "KINETIC ENDEAVORS // 3D RESUME",
+      "tag": "3D MACHINE // 08",
+      "url": "https://cre8ture.github.io/resume-builder/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "cube.kaik.space",
+      "title": "CUBIC PORTFOLIO // 3D ESCHER",
+      "tag": "PRIMARY HUB",
+      "url": "https://cube.kaik.space/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "dance-journal.kaik.space",
+      "title": "DANCE JOURNAL // EMBODIED AI",
+      "tag": "POSE + AUDIO // 15",
+      "url": "https://dance-journal.kaik.space/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "kai4avaya.github.io/ball-roll",
+      "title": "BALL ROLL // KATAMARI 3D",
+      "tag": "PHYSICS GAME // 20",
+      "url": "https://kai4avaya.github.io/ball-roll/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "kai4avaya.github.io/cube",
+      "title": "CUBE CUBE HI // ASCII 3D",
+      "tag": "SHADER STUDY // 22",
+      "url": "https://kai4avaya.github.io/cube/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "kai4avaya.github.io/factory",
+      "title": "FACTORY // CLOCKWORK ASSEMBLY",
+      "tag": "3D MOTION // 21",
+      "url": "https://kai4avaya.github.io/factory/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "kai4avaya.github.io/flowers",
+      "title": "FLOWERS // 3D AUDIO SHAPES",
+      "tag": "WEB AUDIO 3D // 18",
+      "url": "https://kai4avaya.github.io/flowers/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "kai4avaya.github.io/tangle-draw",
+      "title": "TANGLE DRAW // AUDIO CANVAS",
+      "tag": "GENERATIVE ART // 17",
+      "url": "https://kai4avaya.github.io/tangle-draw/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "kai4avaya.github.io/water-flow",
+      "title": "WATER FLOW // MEDITATIVE",
+      "tag": "ENVIRONMENT // 19",
+      "url": "https://kai4avaya.github.io/water-flow/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    },
+    {
+      "key": "kaik.space",
+      "title": "K.AI // GRID PORTFOLIO",
+      "tag": "PORTFOLIO CORE // 01",
+      "url": "https://kaik.space/",
+      "autoDiscovered": false,
+      "status": "ready",
+      "d30": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      },
+      "d7": {
+        "views": 0,
+        "users": 0,
+        "sessions": 0,
+        "avgEngagementSec": 0
+      }
+    }
+  ],
+  "sources": [],
+  "events": []
+}

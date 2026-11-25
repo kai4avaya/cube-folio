@@ -48,6 +48,16 @@ In addition to GA4 Enhanced Measurement (pageviews, scrolls, outbound clicks, vi
 - `launch_project` — fired when clicking **Launch Live Project** (`project_id`, `project_title`, `project_url`)
 - `toggle_list_flow` — fired when switching between Escher Lattice and List Flow (`view_mode`)
 
+### Minimal Portfolio Analytics Dashboard
+
+- **Dashboard URL**: https://cube.kaik.space/analytics/ (`analytics/index.html`, `noindex`)
+- **How auto-discovery works**: `scripts/sync_analytics.py` queries GA4 property `565841989` by `hostName` + `pagePath` and writes read-only summary data to `analytics/data.json`. Any new site that loads `<script defer src="https://cube.kaik.space/analytics.js"></script>` automatically appears on `/analytics/` with an `AUTO` badge as soon as it receives traffic.
+- **Manual refresh**:
+  ```bash
+  /home/bakukai/.local/share/pipx/venvs/analytics-mcp/bin/python scripts/sync_analytics.py --push
+  ```
+- **Automated 6-hour refresh (GitHub Actions)**: Add your service account JSON contents as a repository secret named `GA_SERVICE_ACCOUNT_JSON` in `kai4avaya/cube-folio` → **Settings → Secrets and variables → Actions**; `.github/workflows/sync-analytics.yml` will automatically keep `analytics/data.json` fresh every 6 hours.
+
 ### Querying Analytics via MCP (Antigravity CLI)
 
 `analytics-mcp` is configured globally in `~/.gemini/config/mcp_config.json` (read-only Viewer access to property `565841989`). Run `/mcp` in Antigravity CLI to confirm it's connected, then ask questions like:
