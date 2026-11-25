@@ -40,6 +40,17 @@
     <link rel="shortcut icon" href="./favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
 
+    <!-- Google tag (gtag.js) — Kai Portfolio GA4 (G-NVX0XJGFFL) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NVX0XJGFFL"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        if (window.location.protocol !== 'file:') {
+            gtag('js', new Date());
+            gtag('config', 'G-NVX0XJGFFL');
+        }
+    </script>
+
     <!-- Structured Data (JSON-LD) for Search Discovery -->
     <script type="application/ld+json">
     {
@@ -1353,6 +1364,13 @@
             showToast._timer = setTimeout(() => {
                 toast.style.opacity = '0';
             }, 2400);
+        }
+
+        function trackEvent(eventName, params = {}) {
+            if (IS_STANDALONE_EXPORT || window.location.protocol === 'file:') return;
+            if (typeof window.gtag === 'function') {
+                window.gtag('event', eventName, params);
+            }
         }
 
         // --- Load Compressed Portfolio from URL Parameter (?portfolio=...) if present ---
@@ -3270,9 +3288,11 @@
                 }
                 applyListFlowCubePositions(animateTransition);
                 showListFlowOverlay(true);
+                trackEvent('toggle_list_flow', { view_mode: 'list' });
                 showToast('LIST FLOW // DECONSTRUCTED CUBES');
             } else {
                 showListFlowOverlay(false);
+                trackEvent('toggle_list_flow', { view_mode: 'lattice' });
                 targetRotation.x = DEFAULT_ROT_X;
                 targetRotation.y = DEFAULT_ROT_Y;
                 targetZoom = getResponsiveBaseZoom();
@@ -3421,6 +3441,10 @@
             targetLookAt.copy(getLeftShowcaseCameraTarget(activeCubePos, targetZoom));
 
             populateRightDossierPanel(node, index);
+            trackEvent('inspect_cube', {
+                project_id: node.project.id,
+                project_title: node.project.title
+            });
             document.body.classList.add('inspector-open-mobile');
             document.getElementById('project-inspector').classList.remove('inspector-hidden');
             document.getElementById('left-cube-callouts').classList.remove('callouts-hidden');
@@ -4468,6 +4492,16 @@
             });
 
             // Split-Screen Inspector Navigation & Spin Controls
+            document.getElementById('inspector-live-url').addEventListener('click', () => {
+                if (activeProjectIndex !== -1 && cubeNodes[activeProjectIndex]) {
+                    const p = cubeNodes[activeProjectIndex].project;
+                    trackEvent('launch_project', {
+                        project_id: p.id,
+                        project_title: p.title,
+                        project_url: p.url || ''
+                    });
+                }
+            });
             document.getElementById('close-inspector-btn').addEventListener('click', closeProjectInspector);
             document.getElementById('prev-cube-btn').addEventListener('click', () => transitionToProjectCube(activeProjectIndex - 1));
             document.getElementById('next-cube-btn').addEventListener('click', () => transitionToProjectCube(activeProjectIndex + 1));

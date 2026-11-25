@@ -1,0 +1,7 @@
+# Keep local secrets & GCP credentials out of this public repo
+efbrain1-*.json
+*credentials*.json
+*service-account*.json
+.env
+.env.*
+.DS_Store
