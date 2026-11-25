@@ -516,11 +516,12 @@
         <h2 id="display-mirror-name" class="brutalist-font uppercase tracking-tighter">
             KAI KLEINBARD
         </h2>
-        <div class="flex items-center gap-2.5 mt-2">
+        <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-2">
             <span class="inline-block w-5 h-2 bg-blue-700"></span>
             <p id="display-mirror-sub" class="mono text-xs sm:text-sm font-bold uppercase tracking-[0.22em] opacity-85">
                 AI SYSTEMS // PRODUCT DESIGN ENGINEERING
             </p>
+            <span class="mono text-xs sm:text-sm font-bold uppercase tracking-[0.22em] opacity-85">// LINKEDIN</span>
         </div>
     </div>
 
@@ -553,11 +554,16 @@
                 <h1 id="display-creator-name" class="brutalist-font uppercase tracking-tighter">
                     KAI KLEINBARD
                 </h1>
-                <div id="display-sub-row" class="flex items-center gap-2.5 mt-2.5">
+                <div id="display-sub-row" class="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-2.5">
                     <span class="inline-block w-5 h-2 bg-blue-700"></span>
                     <p id="display-creator-sub" class="mono text-xs sm:text-sm font-bold uppercase tracking-[0.22em] opacity-85">
                         AI SYSTEMS // PRODUCT DESIGN ENGINEERING
                     </p>
+                    <span class="mono text-xs sm:text-sm font-bold uppercase tracking-[0.22em] opacity-60">//</span>
+                    <a id="display-linkedin-link" href="https://www.linkedin.com/in/kai-kleinbard/" target="_blank" rel="noopener noreferrer" class="pointer-events-auto mono text-xs sm:text-sm font-bold uppercase tracking-[0.22em] text-blue-700 dark:text-blue-400 hover:underline underline-offset-4 transition cursor-pointer inline-flex items-center gap-1" title="Open Kai Kleinbard on LinkedIn">
+                        <span>LINKEDIN</span>
+                        <span aria-hidden="true">↗</span>
+                    </a>
                 </div>
             </div>
 
@@ -1403,6 +1409,10 @@
             if (!topHeader) return;
             topHeader.style.opacity = visible ? '1' : '0';
             topHeader.style.transform = visible ? 'translateY(0px)' : 'translateY(-16px)';
+            const linkedinLink = document.getElementById('display-linkedin-link');
+            if (linkedinLink) {
+                linkedinLink.style.pointerEvents = visible ? 'auto' : 'none';
+            }
         }
 
         // Compute 3D camera target along the Escher honeycomb spine for a given scrollT [0..1]
